@@ -4,12 +4,17 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT="$ROOT/artifacts/private/$STAMP"
+ADB=(adb)
 
 usage() {
   cat <<'EOF'
 Usage:
-  ./tools/t2-r0-collect.sh snapshot
-  ./tools/t2-r0-collect.sh ota-watch
+  TITAN_SERIAL=<adb-serial> ./tools/t2-r0-collect.sh snapshot
+  TITAN_SERIAL=<adb-serial> ./tools/t2-r0-collect.sh ota-watch
+
+If exactly one authorized ADB device is connected, TITAN_SERIAL may be omitted.
+If multiple devices are connected, the script refuses to run until TITAN_SERIAL
+is set explicitly.
 
 snapshot   Collect a read-only factory-baseline snapshot over ADB.
 ota-watch  Follow logcat while you manually trigger System Update on the phone.
@@ -19,24 +24,68 @@ Raw Android diagnostics may contain identifiers. Review/redact before sharing.
 EOF
 }
 
-require_adb() {
+select_adb_device() {
   if ! command -v adb >/dev/null 2>&1; then
     echo "error: adb is not in PATH" >&2
     exit 1
   fi
 
-  local state
-  state="$(adb get-state 2>/dev/null || true)"
+  local -a devices=()
+  mapfile -t devices < <(
+    adb devices       | awk 'NR > 1 && $2 == "device" { print $1 }'
+  )
+
+  if [[ -n "${TITAN_SERIAL:-}" ]]; then
+    if ! printf '%s
+' "${devices[@]}" | grep -Fxq "$TITAN_SERIAL"; then
+      echo "error: TITAN_SERIAL is not an authorized ADB device: $TITAN_SERIAL" >&2
+      echo "Authorized devices:" >&2
+      printf '  %s
+' "${devices[@]:-none}" >&2
+      exit 1
+    fi
+  else
+    case "${#devices[@]}" in
+      0)
+        echo "error: no authorized Android device is connected" >&2
+        exit 1
+        ;;
+      1)
+        TITAN_SERIAL="${devices[0]}"
+        ;;
+      *)
+        echo "error: multiple authorized Android devices are connected" >&2
+        echo "Set TITAN_SERIAL explicitly before running this collector." >&2
+        echo "Authorized devices:" >&2
+        printf '  %s
+' "${devices[@]}" >&2
+        exit 1
+        ;;
+    esac
+  fi
+
+  ADB=(adb -s "$TITAN_SERIAL")
+
+  local state model
+  state="$("${ADB[@]}" get-state 2>/dev/null || true)"
+  model="$("${ADB[@]}" shell getprop ro.product.model 2>/dev/null | tr -d '\r')"
+
   if [[ "$state" != "device" ]]; then
-    echo "error: no authorized Android device is connected (adb state: ${state:-none})" >&2
-    echo "Check the USB cable, USB debugging, and the authorization prompt on the phone." >&2
+    echo "error: selected device is not ready (adb state: ${state:-none})" >&2
+    exit 1
+  fi
+
+  if [[ "$model" != "Titan 2" ]]; then
+    echo "error: selected device does not identify as Titan 2 (model: ${model:-unknown})" >&2
+    echo "Refusing to collect from the wrong Android device." >&2
     exit 1
   fi
 }
 
 new_output_dir() {
   mkdir -p "$OUT"
-  printf '%s\n' "$OUT"
+  printf '%s
+' "$OUT"
 }
 
 capture() {
@@ -55,17 +104,15 @@ capture_shell() {
   shift
   local cmd="$*"
   {
-    printf '$ adb shell %s\n' "$cmd"
-    adb shell "$cmd"
+    printf '$ adb -s <redacted> shell %s\n' "$cmd"
+    "${ADB[@]}" shell "$cmd"
   } >"$OUT/$name" 2>&1 || true
 }
 
 write_manifest() {
   (
     cd "$OUT"
-    find . -type f ! -name SHA256SUMS -print0 \
-      | sort -z \
-      | xargs -0 shasum -a 256 > SHA256SUMS
+    find . -type f ! -name SHA256SUMS -print0       | sort -z       | xargs -0 shasum -a 256 > SHA256SUMS
   )
 }
 
@@ -75,59 +122,18 @@ snapshot() {
   {
     echo "# Titan 2 R0 curated properties"
     echo "# Deliberately excludes common serial/IMEI/MEID/MAC/ICCID properties."
-    for key in \
-      ro.product.manufacturer \
-      ro.product.brand \
-      ro.product.model \
-      ro.product.device \
-      ro.product.name \
-      ro.product.board \
-      ro.product.cpu.abi \
-      ro.product.cpu.abilist \
-      ro.board.platform \
-      ro.hardware \
-      ro.boot.hardware \
-      ro.soc.manufacturer \
-      ro.soc.model \
-      ro.build.fingerprint \
-      ro.build.id \
-      ro.build.display.id \
-      ro.build.type \
-      ro.build.tags \
-      ro.build.version.release \
-      ro.build.version.release_or_codename \
-      ro.build.version.sdk \
-      ro.build.version.security_patch \
-      ro.build.version.incremental \
-      ro.vendor.build.fingerprint \
-      ro.vendor.build.version.sdk \
-      ro.vendor.build.security_patch \
-      ro.vendor.api_level \
-      ro.board.api_level \
-      ro.vndk.version \
-      ro.treble.enabled \
-      ro.build.ab_update \
-      ro.virtual_ab.enabled \
-      ro.virtual_ab.compression.enabled \
-      ro.boot.slot_suffix \
-      ro.boot.dynamic_partitions \
-      ro.boot.super_partition \
-      ro.boot.flash.locked \
-      ro.boot.verifiedbootstate \
-      ro.boot.veritymode \
-      ro.boot.vbmeta.device_state \
-      ro.boot.avb_version \
-      ro.boot.vbmeta.digest
+    for key in       ro.product.manufacturer       ro.product.brand       ro.product.model       ro.product.device       ro.product.name       ro.product.board       ro.product.cpu.abi       ro.product.cpu.abilist       ro.board.platform       ro.hardware       ro.boot.hardware       ro.soc.manufacturer       ro.soc.model       ro.build.fingerprint       ro.build.id       ro.build.display.id       ro.build.type       ro.build.tags       ro.build.version.release       ro.build.version.release_or_codename       ro.build.version.sdk       ro.build.version.security_patch       ro.build.version.incremental       ro.vendor.build.fingerprint       ro.vendor.build.version.sdk       ro.vendor.build.security_patch       ro.vendor.api_level       ro.board.api_level       ro.vndk.version       ro.treble.enabled       ro.build.ab_update       ro.virtual_ab.enabled       ro.virtual_ab.compression.enabled       ro.boot.slot_suffix       ro.boot.dynamic_partitions       ro.boot.super_partition       ro.boot.flash.locked       ro.boot.verifiedbootstate       ro.boot.veritymode       ro.boot.vbmeta.device_state       ro.boot.avb_version       ro.boot.vbmeta.digest
     do
-      value="$(adb shell getprop "$key" 2>/dev/null | tr -d '\r')"
+      value="$("${ADB[@]}" shell getprop "$key" 2>/dev/null | tr -d '\r')"
       printf '%-40s %s\n' "$key" "$value"
     done
   } >"$OUT/properties.txt"
 
   capture adb-devices.txt adb devices -l
+  capture selected-device-state.txt "${ADB[@]}" get-state
   capture_shell kernel.txt uname -a
   {
-    adb shell cat /proc/version 2>/dev/null || true
+    "${ADB[@]}" shell cat /proc/version 2>/dev/null || true
   } >>"$OUT/kernel.txt"
 
   capture_shell partitions.txt cat /proc/partitions
@@ -173,7 +179,7 @@ ota_watch() {
   local candidates="$OUT/ota-candidates.txt"
 
   cat <<EOF
-Capturing Android logcat without clearing the device log buffer.
+Capturing Titan 2 logcat without clearing the device log buffer.
 
 Now, on the Titan 2:
   Settings -> About phone -> System Update -> check for/update
@@ -196,9 +202,7 @@ EOF
   }
   trap finish INT TERM
 
-  adb logcat -v threadtime 2>&1 \
-    | tee "$raw" \
-    | awk 'BEGIN { IGNORECASE=1 }
+  "${ADB[@]}" logcat -v threadtime 2>&1     | tee "$raw"     | awk 'BEGIN { IGNORECASE=1 }
       /https?:\/\// ||
       /ota/ ||
       /system[ _-]*update/ ||
@@ -212,14 +216,13 @@ EOF
       /fota/ {
         print
         fflush()
-      }' \
-    | tee "$candidates"
+      }'     | tee "$candidates"
 
   write_manifest
 }
 
 main() {
-  require_adb
+  select_adb_device
 
   case "${1:-}" in
     snapshot) snapshot ;;
