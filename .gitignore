@@ -1,0 +1,16 @@
+.DS_Store
+artifacts/
+captures/
+firmware/
+*.img
+*.bin
+*.zip
+*.7z
+*.rar
+*.tar
+*.tgz
+*.gz
+*.xz
+*.zst
+*.pac
+*.scatter
