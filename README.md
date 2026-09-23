@@ -1,10 +1,10 @@
 # Unihertz Titan 2
 
-Bounded device research for a future SableOS Titan 2 bring-up.
+Bounded device research for a future SableOS Titan 2 bring-up, plus focused application research for physical-keyboard phones.
 
 ## Status
 
-**Research closed on 2026-09-22. SableOS bring-up is intentionally deferred until SableOS Release 9 validation on the Pixel 7 is complete.**
+**Core Titan 2 boot/firmware research closed on 2026-09-22. SableOS bring-up is intentionally deferred until SableOS Release 9 validation on the Pixel 7 is complete.**
 
 ```text
 T2-R0  Factory baseline                         CLOSED
@@ -12,12 +12,14 @@ T2-R1  Firmware + partition + recovery closure CLOSED
 T2-R2  Bootloader / AVB / GSI feasibility      CLOSED
 T2-R3  SableOS feasibility decision            GO / CLOSED
 
-STOP RESEARCH
+STOP BROAD DEVICE RESEARCH
 
-Next:
-  finish SableOS 9 validation on Pixel 7
-  -> design Titan 2 flash/recovery plan
-  -> start SableOS Titan 2 bring-up
+Parallel work allowed:
+  focused camera-app research
+  focused physical-keyboard app research
+
+OS bring-up resumes after:
+  SableOS 9 validation on Pixel 7
 ```
 
 No SableOS image has been flashed to the Titan 2 yet.
@@ -39,7 +41,40 @@ No SableOS image has been flashed to the Titan 2 yet.
 - Recovery ramdisk is carried in `vendor_boot`; no standalone recovery partition has been observed.
 - The public non-EEA/`_tee` full firmware lineage is cryptographically equivalent to the observed US OTA lineage for all 34 OTA-managed partitions across `V01.00.13 -> V01.00.14`.
 
-See:
+## Camera research snapshot
+
+Focused read-only camera work on stock `V01.00.13` found a richer topology than the normal app-facing camera list suggests:
+
+```text
+4 total Camera2 devices
+2 normal/public devices
+
+0 = rear main
+1 = front
+2 = hidden SYSTEM_CAMERA rear telephoto
+3 = hidden SYSTEM_CAMERA logical rear camera (physical IDs 0 + 2)
+```
+
+The stock MediaTek camera opens logical camera `3`. At 1× the active/master physical camera is `0`; at a captured ~4.63× zoom it is `2`. The HAL advertises multi-camera zoom steps `[1.0, 3.4]`.
+
+The rear main and hidden telephoto both advertise RAW and manual Camera2 capabilities. AGOLD vendor metadata also exposes vendor super-resolution sizes corresponding to approximately 50 MP rear-main and 32 MP front output.
+
+See [Camera research and Sable Camera plan](docs/CAMERA_RESEARCH.md).
+
+## Physical-keyboard app research
+
+While SableOS 9 validation continues on Pixel 7, the application track is evaluating existing physical-keyboard work rather than immediately starting another IME from scratch.
+
+Primary references include:
+
+- **Pastiera** — physical-keyboard IME with Titan 2 layouts/device archives;
+- **Commander** — keyboard-first command palette / Android UX reference;
+- **q25toolbox** — lower-level Q25 key-remap/accessibility/root integration reference;
+- Unihertz community work and Discord discussions, converted into reproducible evidence before becoming repository claims.
+
+See [Physical-keyboard app research plan](docs/KEYBOARD_APP_RESEARCH.md).
+
+## Documentation
 
 - [Factory baseline](docs/FACTORY_BASELINE.md)
 - [US OTA capture](docs/OTA_CAPTURE.md)
@@ -47,6 +82,8 @@ See:
 - [Bootloader and AVB](docs/BOOTLOADER_AVB.md)
 - [Platform architecture](docs/PLATFORM_ARCHITECTURE.md)
 - [Unihertz/Titan 2 quirks](docs/UNIHERTZ_QUIRKS.md)
+- [Camera research and Sable Camera plan](docs/CAMERA_RESEARCH.md)
+- [Physical-keyboard app research plan](docs/KEYBOARD_APP_RESEARCH.md)
 - [SableOS bring-up contract](docs/SABLEOS_BRINGUP_CONTRACT.md)
 - [References](docs/REFERENCES.md)
 
@@ -54,11 +91,13 @@ See:
 
 Raw captures, firmware, OTAs, extracted images, device identifiers, and unredacted FOTA metadata do **not** belong in this repository.
 
-The consolidated private evidence for this research pass is stored on `ai-g732` beneath the Titan 2 artifact area. The 2026-09-22 Mac-to-server consolidation contained 2,706 files; the resulting evidence-manifest SHA-256 was:
+The consolidated private evidence for the initial research pass is stored on `ai-g732` beneath the Titan 2 artifact area. The 2026-09-22 Mac-to-server consolidation contained 2,706 files; the resulting evidence-manifest SHA-256 was:
 
 ```text
 bd9df72e51fa17a3eff8b03da5f218f5b4689de3f1dc0253be2c5552d10361eb  SHA256SUMS
 ```
+
+Camera research dumps and future probe exports also stay private until reviewed/redacted.
 
 Firmware/image corpora are maintained separately on `ai-g732` and are not committed here.
 
@@ -67,21 +106,34 @@ Firmware/image corpora are maintained separately on `ai-g732` and are not commit
 - Never commit stock firmware, OTA packages, partition images, dumps, keys, calibration data, device serials, IMEI/MEID/ICCID values, FCM identifiers, MID values, or per-device/signed OTA query strings.
 - Keep raw diagnostic output private until reviewed and redacted.
 - Prefer hashes, metadata, reproducible commands, and bounded conclusions.
-- Do not import Titan 2 Elite assumptions into Titan 2 evidence.
+- Do not import Titan 2 Elite or Q27 assumptions into Titan 2 evidence.
+- Keep prototype-device observations explicitly labeled as prototype evidence.
 - When multiple Android devices are attached, always target the Titan explicitly with `adb -s <serial>` / `fastboot -s <serial>`.
 - Do not relock the bootloader unless a fully stock, internally consistent firmware state has first been restored and verified.
 
-## Next bring-up boundary
+## Near-term plan
 
-When SableOS 9 validation on Pixel 7 is finished, resume here rather than reopening device research.
+The boot/firmware track stays parked. Application research can continue without changing the Titan 2 system image.
 
-The first Titan 2 bring-up plan should:
+```text
+camera:
+  finish stock capability baseline
+  -> build reusable Camera2 probe
+  -> design Sable Camera around public + privileged backends
 
-1. preserve the stock MTK kernel/vendor stack initially;
-2. define the SableOS system/framework image against the observed Treble/VNDK-34 contract;
-3. account for AVB explicitly;
-4. account for Virtual A/B and current `super` allocations;
-5. define a stock restore path before the first non-stock flash;
-6. test Titan-specific hardware only as it becomes a bring-up blocker.
+keyboard:
+  capture Titan 2 physical-key event/keylayout baseline
+  -> evaluate Pastiera on real hardware
+  -> define cross-device keyboard profile schema
 
-The first alternate-system boot is a **bring-up milestone**, not another research prerequisite.
+Q27:
+  wait for newer/current OTA releases and preferably retail hardware
+  -> do not generalize prototype firmware
+
+SableOS:
+  finish Release 9 validation on Pixel 7
+  -> resume issue #2
+  -> design Titan 2 recovery-safe first flash
+```
+
+The first alternate-system boot remains a **bring-up milestone**, not another research prerequisite.
