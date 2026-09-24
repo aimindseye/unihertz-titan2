@@ -259,6 +259,36 @@ This closes the normal-app visibility question: stock third-party applications g
 
 It also shows that the normal stock-app backend can expose the vendor high-resolution still paths as ordinary JPEG stream sizes even though the standard ultra-high-resolution capability is not advertised.
 
+### Vendor characteristics visible to an ordinary app
+
+The normal APK sees 35 non-`android.*` characteristics on camera `0` and 30 on camera `1`. In this app-visible characteristic list, all observed keys are MediaTek-prefixed; the AGOLD `superResolution` characteristic seen from CameraService/HAL diagnostics is **not** exposed as a normal-app `CameraCharacteristics` key.
+
+This is an important API boundary: Sable Camera must discover the working high-resolution JPEG path from the standard stream map rather than depending on the AGOLD characteristic.
+
+Rear camera `0` exposes vendor capability metadata for:
+
+- ZSL availability/default;
+- postview and early-notification support;
+- continuous-shot modes;
+- photo/video/VHDR mode enumerants;
+- MFNR/AI-multiframe mode enumerants;
+- 3D noise reduction;
+- high-frame-rate support with a reported 1920×1080@60 maximum;
+- high-frame-rate EIS with the same 1920×1080@60 maximum;
+- in-sensor-zoom support metadata associated with physical ID `0`;
+- preview compression;
+- AOV/background-service pipeline capability metadata;
+- HDR10+ EIS/VSS support flags;
+- video AI noise-reduction mode enumerants.
+
+Front camera `1` exposes a largely overlapping subset, but its vendor characteristics do not advertise the rear camera's HFR mode/max-resolution entries, in-sensor-zoom physical-ID entry, rear continuous-shot mode `1`, or flash-calibration availability.
+
+The integer vendor-mode values are recorded as raw enumerants. Their semantic names must not be guessed without either MediaTek source/header evidence or controlled request/result experiments.
+
+The `com.mediatek.control.capture.ispMetaSizeForRaw` and `...ispMetaSizeForYuv` values are vendor metadata dimensions and must not be interpreted as sensor/output stream resolutions.
+
+The probe should next inventory ordinary-app-visible **CaptureRequest**, **CaptureResult**, session and physical-request vendor keys. A characteristic saying a feature exists does not prove a normal app can set its request control or observe its result state.
+
 ### Privileged/system build on SableOS
 
 The more interesting SableOS target is a privileged/system camera application that can request access to `SYSTEM_CAMERA` devices.
