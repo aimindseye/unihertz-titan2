@@ -60,7 +60,8 @@ final class CaptureStore {
             Context context,
             CameraCharacteristics characteristics,
             TotalCaptureResult result,
-            Image image
+            Image image,
+            int orientationDegrees
     ) throws Exception {
         String name = "SABLE_" + timestamp() + ".dng";
         ContentValues values = new ContentValues();
@@ -83,6 +84,7 @@ final class CaptureStore {
                 DngCreator creator = new DngCreator(characteristics, result);
                 OutputStream output = resolver.openOutputStream(uri, "w")
         ) {
+            creator.setOrientation(tiffOrientation(orientationDegrees));
             if (output == null) {
                 throw new IllegalStateException("Unable to open DNG output stream");
             }
@@ -99,6 +101,15 @@ final class CaptureStore {
         values.put(MediaStore.MediaColumns.IS_PENDING, 0);
         resolver.update(uri, values, null, null);
         return uri;
+    }
+
+    private static int tiffOrientation(int degrees) {
+        return switch ((degrees % 360 + 360) % 360) {
+            case 90 -> 6;
+            case 180 -> 3;
+            case 270 -> 8;
+            default -> 1;
+        };
     }
 
     private static String timestamp() {
