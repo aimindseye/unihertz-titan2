@@ -6,6 +6,7 @@ import android.content.Context;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.DngCreator;
 import android.hardware.camera2.TotalCaptureResult;
+import android.media.ExifInterface;
 import android.media.Image;
 import android.net.Uri;
 import android.os.Environment;
@@ -105,10 +106,10 @@ final class CaptureStore {
 
     private static int tiffOrientation(int degrees) {
         return switch ((degrees % 360 + 360) % 360) {
-            case 90 -> 6;
-            case 180 -> 3;
-            case 270 -> 8;
-            default -> 1;
+            case 90 -> ExifInterface.ORIENTATION_ROTATE_90;
+            case 180 -> ExifInterface.ORIENTATION_ROTATE_180;
+            case 270 -> ExifInterface.ORIENTATION_ROTATE_270;
+            default -> ExifInterface.ORIENTATION_NORMAL;
         };
     }
 
