@@ -100,3 +100,19 @@ An important additional result is that the ~50 MP rear and ~32 MP front still si
 Metadata advertisement is not yet proof that those maximum JPEG modes capture successfully. The next probe increment should perform real still captures at those advertised sizes and record latency, byte size, output dimensions and failure reason.
 
 A later privileged/system SableOS build can reuse the same reporting/capture core to test the system-camera path.
+
+
+## JPEG capture test
+
+After the metadata probe, the current branch also provides **Run JPEG capture tests**.
+
+The test selects, for each camera visible to the ordinary app:
+
+- a large conventional 4:3 JPEG size at or below 4096×3072 when available;
+- the largest advertised JPEG size.
+
+On the validated Titan 2 metadata this is intended to exercise the ordinary still path plus the advertised high-resolution JPEG paths, including rear `8192×6144` and front `6560×4928`.
+
+The capture test records requested size, success/failure, byte count and elapsed time. JPEG outputs are stored privately beneath the app-specific `camera-probe/captures` directory.
+
+Metadata advertisement is not treated as capture proof until this test succeeds on-device.
