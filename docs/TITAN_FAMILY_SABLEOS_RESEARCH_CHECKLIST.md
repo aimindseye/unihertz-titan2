@@ -7,8 +7,10 @@ Date: 2026-09-24
 This checklist is intentionally narrower than the original Titan 2 firmware
 forensics. The Titan 2 bootloader/AVB/Treble feasibility questions are already
 well covered. The next research should produce evidence that directly fills
-future SableOS device-adapter, keyboard-first UI, Camera and N0 acceptance
-contracts.
+future SableOS device-adapter, Keyboard-First Design V1, Camera and N0
+acceptance contracts. The corresponding common Sable architecture is tracked in
+`aimindseye/sableos:docs/adr/0010-keyboard-first-sableos-design-v1.md`; this
+checklist remains the device-evidence side of that contract.
 
 Titan 2 and Titan 2 Elite are always independent evidence targets. Do not copy a
 PASS from one device to the other.
@@ -120,6 +122,33 @@ For Titan 2 Elite also test:
 The SableOS design should not depend on Kika or another IME for hardware
 pointer/key events that properly belong in the platform input adapter.
 
+Normalize the evidence into a capability record rather than only a model-name
+description. Record independently:
+
+```text
+physical key matrix
+modifier keys
+programmable keys
+repeat / wake behavior
+keyboard backlight capability
+
+pointer/touch surface:
+  relative or absolute
+  X/Y scroll
+  tap/click/long-press
+  swipe
+  multi-zone / gesture-select
+  surface location:
+    keyboard matrix
+    separate trackpad
+    toolbelt/auxiliary surface
+    other
+```
+
+Do not infer that a future Q27-style toolbelt/trackpad and the Titan keyboard
+touch surface expose the same event topology merely because both can move a
+cursor.
+
 ### C. Display and input topology
 
 For both devices capture:
@@ -152,6 +181,28 @@ whether input remains active when rear display is disabled
 This evidence should drive a display profile; do not hard-code "Titan 2 means
 display 1".
 
+Also create an application-compatibility sample set for the unusual display
+geometry. For each selected app capture:
+
+```text
+package + version
+native physical/logical display metrics
+reported app/window bounds
+reported density / smallest width
+orientation
+insets / cutout behavior
+screenshots of useful and broken states
+whether Android already applies size-compat / letterbox behavior
+touch-coordinate correctness
+keyboard-focus/navigation correctness
+```
+
+Include a mix of Sable first-party apps and third-party apps known to stress
+compact/square layouts. The goal is evidence for future per-app **Sable App
+Display Profiles** supporting native/full-screen, aspect presets, custom logical
+W x H and optional logical density. Do not use foreground-driven global
+`wm size` changes as the target architecture.
+
 ### D. Stock keyboard/subscreen implementation ownership
 
 Inventory stock packages, privileged permissions, services, overlays and native
@@ -176,6 +227,53 @@ Sable-owned presentation behavior
 
 This prevents SableOS from replacing a UI package and accidentally deleting the
 only owner of a hardware capability.
+
+### D2. Notification and attention surfaces
+
+Keyboard-first SableOS will expose notification configuration and triage as a
+first-class surface, so capture the stock/device-specific attention capabilities
+before replacing presentation.
+
+For both Titan 2 and Titan 2 Elite record:
+
+- Android notification channel/category configuration behavior;
+- conversation/priority notification behavior where exposed;
+- lockscreen visibility/redaction behavior;
+- notification shade keyboard navigation, if any;
+- notification snooze/dismiss/reply behavior;
+- vibration and notification-sound ownership;
+- any status/notification LED;
+- keyboard-backlight behavior tied to notifications, if any;
+- doze/AOD notification presentation, if any;
+- vendor services/settings that own hardware attention behavior.
+
+For Titan 2, additionally characterize rear SubScreen notification behavior:
+
+```text
+which notification categories appear
+content redaction while locked
+tap/action behavior
+reply support if any
+wake behavior
+timeout
+per-app allow/block configuration
+relationship to main-display notification state
+relationship to DND / channel importance
+```
+
+Normalize proven outputs as capabilities rather than Titan-specific assumptions:
+
+```text
+notification.output.status_led
+notification.output.keyboard_backlight
+notification.output.secondary_display
+notification.output.haptic
+notification.output.audio
+notification.output.always_on_display
+```
+
+Only controls backed by physical evidence should appear in the eventual Titan
+device profile.
 
 ## Tier 1 for Titan 2 Elite arrival
 
@@ -376,9 +474,12 @@ Use the same column set for Titan 2 and Elite:
 | --- | --- | --- | --- | --- |
 | boot/adb | | | | |
 | display/touch | | | | |
+| per-app display-profile compatibility | | | | |
 | physical keyboard | | | | |
-| keyboard pointer/mouse | | | | |
+| keyboard pointer/input surface | | | | |
 | IME/text entry | | | | |
+| notification policy / keyboard triage | | | | |
+| hardware notification outputs | | | | |
 | rear SubScreen (Titan 2) | | | | |
 | Wi-Fi | | | | |
 | Bluetooth | | | | |
@@ -404,3 +505,8 @@ bounded experiment.
 
 Conversely, do not mutate a device merely because a community GSI worked.
 SableOS requires its own restore, artifact, serial-binding and evidence contract.
+
+Discord, Facebook and prototype/community reports are test leads, not repository
+hardware facts. Convert a claim into this checklist or another normative device
+record only after it is reproduced on the relevant retail device/firmware or
+supported by inspectable source/firmware evidence.
