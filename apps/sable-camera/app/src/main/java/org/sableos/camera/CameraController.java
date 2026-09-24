@@ -707,23 +707,47 @@ final class CameraController implements TextureView.SurfaceTextureListener {
             return;
         }
 
-        Matrix inverse = new Matrix();
-        Matrix transform = new Matrix();
-        textureView.getTransform(transform);
+        float displayX = clamp(
+                viewX / Math.max(1f, textureView.getWidth()),
+                0f,
+                1f
+        );
+        float displayY = clamp(
+                viewY / Math.max(1f, textureView.getHeight()),
+                0f,
+                1f
+        );
 
-        if (!transform.invert(inverse)) {
-            status("Unable to map focus point.");
-            return;
+        Integer lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING);
+        if (lensFacing != null
+                && lensFacing == CameraCharacteristics.LENS_FACING_FRONT) {
+            displayX = 1f - displayX;
         }
 
-        float[] point = new float[] { viewX, viewY };
-        inverse.mapPoints(point);
+        float sensorNx;
+        float sensorNy;
 
-        float nx = clamp(point[0] / Math.max(1f, textureView.getWidth()), 0f, 1f);
-        float ny = clamp(point[1] / Math.max(1f, textureView.getHeight()), 0f, 1f);
+        switch (relativeSensorRotation()) {
+            case 90 -> {
+                sensorNx = displayY;
+                sensorNy = 1f - displayX;
+            }
+            case 180 -> {
+                sensorNx = 1f - displayX;
+                sensorNy = 1f - displayY;
+            }
+            case 270 -> {
+                sensorNx = 1f - displayY;
+                sensorNy = displayX;
+            }
+            default -> {
+                sensorNx = displayX;
+                sensorNy = displayY;
+            }
+        }
 
-        int sensorX = active.left + Math.round(nx * active.width());
-        int sensorY = active.top + Math.round(ny * active.height());
+        int sensorX = active.left + Math.round(sensorNx * active.width());
+        int sensorY = active.top + Math.round(sensorNy * active.height());
 
         int regionWidth = Math.max(64, active.width() / 8);
         int regionHeight = Math.max(64, active.height() / 8);
