@@ -70,10 +70,33 @@ export TITAN_SERIAL=<titan-serial>
 
 Treat the JSON as private/raw evidence until reviewed. Do not commit raw probe output directly.
 
-## Expected stock hypothesis
+## Stock V01.00.13 result
 
-CameraService already proves four registered cameras but only two normal cameras. The normal APK is therefore expected to enumerate cameras `0` and `1`, while hidden `SYSTEM_CAMERA` IDs `2` and `3` are expected to remain absent.
+Normal-app validation on Titan 2 proved:
 
-This probe exists to test that expectation from an ordinary application process rather than treating it as proven in advance.
+```text
+CameraManager.getCameraIdList() -> ["0", "1"]
 
-A later privileged/system SableOS build can reuse the same reporting core to test the system-camera path.
+camera 0:
+  open -> success
+  LEVEL_3
+  RAW -> up to 4096x3072
+  JPEG -> includes 8192x6144
+
+camera 1:
+  open -> success
+  FULL
+  no RAW capability
+  JPEG -> includes 6560x4928
+
+camera 2/3:
+  not returned to the ordinary app
+```
+
+The normal-app visibility boundary is therefore closed: the telephoto and logical main+tele cameras remain hidden behind `SYSTEM_CAMERA`.
+
+An important additional result is that the ~50 MP rear and ~32 MP front still sizes are exposed to an ordinary app through the standard JPEG stream map even though the standard ultra-high-resolution capability was not observed.
+
+Metadata advertisement is not yet proof that those maximum JPEG modes capture successfully. The next probe increment should perform real still captures at those advertised sizes and record latency, byte size, output dimensions and failure reason.
+
+A later privileged/system SableOS build can reuse the same reporting/capture core to test the system-camera path.
