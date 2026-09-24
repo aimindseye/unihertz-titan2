@@ -7,7 +7,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.TextureView;
+import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -17,7 +17,7 @@ import android.widget.TextView;
 public final class MainActivity extends Activity implements CameraController.Listener {
     private static final int CAMERA_PERMISSION_REQUEST = 2001;
 
-    private TextureView textureView;
+    private AutoFitTextureView textureView;
     private TextView statusView;
     private TextView modeView;
     private Button cameraButton;
@@ -53,7 +53,14 @@ public final class MainActivity extends Activity implements CameraController.Lis
                 )
         );
 
-        textureView = new TextureView(this);
+        textureView = new AutoFitTextureView(this);
+        textureView.setOnTouchListener((view, event) -> {
+            if (event.getActionMasked() == MotionEvent.ACTION_UP && controller != null) {
+                controller.focusAt(event.getX(), event.getY());
+                return true;
+            }
+            return true;
+        });
         LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 0,
@@ -110,7 +117,7 @@ public final class MainActivity extends Activity implements CameraController.Lis
         root.addView(shutterButton, shutterParams);
 
         statusView = new TextView(this);
-        statusView.setText("Camera permission required.");
+        statusView.setText("Camera permission required. Tap the preview to focus.");
         statusView.setTextColor(Color.LTGRAY);
         statusView.setTextSize(13);
         statusView.setGravity(Gravity.CENTER_HORIZONTAL);
