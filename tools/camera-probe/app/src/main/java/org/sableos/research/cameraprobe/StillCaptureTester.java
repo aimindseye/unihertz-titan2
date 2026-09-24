@@ -79,7 +79,10 @@ final class StillCaptureTester {
             }
 
             Size max = largest(jpegSizes);
-            Size conventional = largestWithin(jpegSizes, 4096, 3072);
+            Size conventional = largestFourThreeWithin(jpegSizes, 4096, 3072);
+            if (conventional == null) {
+                conventional = largestWithin(jpegSizes, 4096, 3072);
+            }
             if (conventional == null) {
                 conventional = smallest(jpegSizes);
             }
@@ -398,6 +401,21 @@ final class StillCaptureTester {
         return Arrays.stream(sizes)
                 .min(Comparator.comparingLong(StillCaptureTester::area))
                 .orElseThrow();
+    }
+
+    private static Size largestFourThreeWithin(
+            Size[] sizes,
+            int maxWidth,
+            int maxHeight
+    ) {
+        final double target = 4.0 / 3.0;
+        return Arrays.stream(sizes)
+                .filter(s -> s.getWidth() <= maxWidth && s.getHeight() <= maxHeight)
+                .filter(s -> Math.abs(
+                        ((double) s.getWidth() / (double) s.getHeight()) - target
+                ) < 0.02)
+                .max(Comparator.comparingLong(StillCaptureTester::area))
+                .orElse(null);
     }
 
     private static Size largestWithin(
