@@ -83,6 +83,7 @@ See [Physical-keyboard app research plan](docs/KEYBOARD_APP_RESEARCH.md).
 - [Platform architecture](docs/PLATFORM_ARCHITECTURE.md)
 - [Unihertz/Titan 2 quirks](docs/UNIHERTZ_QUIRKS.md)
 - [Camera research and Sable Camera plan](docs/CAMERA_RESEARCH.md)
+- [Camera no-root / root / SableOS capability roadmap](docs/CAMERA_ROOT_VS_NO_ROOT.md)
 - [Physical-keyboard app research plan](docs/KEYBOARD_APP_RESEARCH.md)
 - [SableOS bring-up contract](docs/SABLEOS_BRINGUP_CONTRACT.md)
 - [References](docs/REFERENCES.md)
