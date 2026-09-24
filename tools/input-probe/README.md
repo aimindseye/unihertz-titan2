@@ -40,3 +40,51 @@ Use the **NON-TEXT EVENT SINK** first. Then repeat selected keys after tapping t
 text field. A key that is visible in Linux `getevent` but absent from this app
 may be consumed or transformed by Android/framework/vendor policy before app
 dispatch.
+
+
+## Guided Section A mode
+
+For the repeat/chord/text-context portion of Tier-1 Section A, use the guided
+mode instead of manually clearing logcat between tests.
+
+1. Build and install the latest probe.
+2. Open **Input Probe**.
+3. Tap **Start guided A** once.
+4. Follow the large instruction shown on the phone.
+5. Take as long as needed.
+6. After each instruction, tap **Done -> Next**.
+7. The app clears only its test text field automatically and keeps a structured
+   private session file.
+
+The guided sequence currently covers:
+
+- Q baseline;
+- Space then Enter;
+- Shift+Q;
+- Alt+Q;
+- Sym+Q;
+- Q auto-repeat;
+- Backspace auto-repeat after typing `abcdef`;
+- double-Shift then Q.
+
+No host timer and no manual log clearing are required.
+
+When the phone says **GUIDED SECTION A COMPLETE**, pull the private result:
+
+```bash
+export TITAN_SERIAL=<titan-adb-serial>
+bash tools/input-probe/pull-section-a-guided.sh
+```
+
+The puller uses `run-as` on the debug probe and writes the reviewed session
+under `artifacts/private/t2-tier1/<timestamp>-section-a-guided/`.
+
+For lockscreen and screen-off context tests use the separate guided host helper:
+
+```bash
+bash tools/section-a-context-capture.sh lockscreen
+bash tools/section-a-context-capture.sh screenoff
+```
+
+That helper presents one instruction at a time and handles all capture filenames
+and timing automatically.
