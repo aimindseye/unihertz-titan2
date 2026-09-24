@@ -73,8 +73,7 @@ final class CaptureStore {
         values.put(MediaStore.MediaColumns.IS_PENDING, 1);
 
         ContentResolver resolver = context.getContentResolver();
-        Uri collection = MediaStore.Files.getContentUri("external");
-        Uri uri = resolver.insert(collection, values);
+        Uri uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
         if (uri == null) {
             throw new IllegalStateException("MediaStore DNG insert failed");
         }
