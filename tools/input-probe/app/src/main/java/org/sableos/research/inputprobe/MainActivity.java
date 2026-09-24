@@ -7,6 +7,7 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.InputDevice;
+import android.view.InputEvent;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -144,7 +145,7 @@ public final class MainActivity extends Activity {
                 e.getDeviceId(),
                 d == null ? "null" : d.getName(),
                 e.getSource(),
-                e.getDisplayId(),
+                inputEventDisplayId(e),
                 e.getFlags(),
                 e.getUnicodeChar());
     }
@@ -160,7 +161,7 @@ public final class MainActivity extends Activity {
                 e.getDeviceId(),
                 d == null ? "null" : d.getName(),
                 e.getSource(),
-                e.getDisplayId(),
+                inputEventDisplayId(e),
                 e.getX(),
                 e.getY(),
                 e.getPressure(),
@@ -186,6 +187,17 @@ public final class MainActivity extends Activity {
 
     private int getDisplayIdSafe() {
         return getDisplay() == null ? -1 : getDisplay().getDisplayId();
+    }
+
+    private int inputEventDisplayId(InputEvent event) {
+        try {
+            Object value = InputEvent.class.getMethod("getDisplayId").invoke(event);
+            return value instanceof Integer ? (Integer) value : -1;
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            // getDisplayId() is not part of every public Android SDK surface.
+            // Keep the probe portable and report -1 when the runtime does not expose it.
+            return -1;
+        }
     }
 
     private void append(String line) {
