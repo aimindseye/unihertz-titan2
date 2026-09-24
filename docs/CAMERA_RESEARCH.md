@@ -69,7 +69,20 @@ The AGOLD vendor tag `com.agold.feature.superResolution` advertises:
 8192 × 6144
 ```
 
-which is approximately 50.3 MP. Android's standard maximum-resolution / ultra-high-resolution metadata was not found in the inspected dump, so this should be treated as a vendor-defined capture path rather than standard `ULTRA_HIGH_RESOLUTION_SENSOR` exposure.
+which is approximately 50.3 MP.
+
+A normal third-party Camera2 probe subsequently showed that `8192×6144` is also advertised through the ordinary `SCALER_STREAM_CONFIGURATION_MAP` as a JPEG output size. The same app sees RAW only up to `4096×3072`.
+
+No standard `ULTRA_HIGH_RESOLUTION_SENSOR` capability / maximum-resolution metadata was observed. The best current description is therefore:
+
+```text
+ordinary app-visible JPEG still path: 8192×6144
+ordinary app-visible RAW path:        4096×3072
+standard ultra-high-resolution API:   not advertised
+AGOLD superResolution tag:            8192×6144
+```
+
+This is stronger than the earlier conclusion that the ~50 MP mode was only a vendor-hidden path. Actual successful capture at 8192×6144 still needs to be tested before treating it as a proven working capture mode.
 
 MediaTek vendor metadata also advertises 1920×1080 at 60 fps for high-frame-rate operation and an EIS-compatible 1080p60 limit.
 
@@ -101,6 +114,8 @@ AGOLD's `superResolution` tag advertises:
 ```
 
 which is approximately 32.3 MP.
+
+The normal third-party Camera2 probe also sees `6560×4928` in the standard JPEG output stream map. The front camera still does not advertise RAW, and its ordinary YUV output sizes top out below that full-resolution JPEG path. As with the rear high-resolution JPEG mode, successful capture at 6560×4928 still needs to be proven experimentally.
 
 ## Rear telephoto camera
 
@@ -212,14 +227,33 @@ There are two distinct deployment targets.
 
 ### Normal APK on stock firmware
 
-A normal third-party camera should be designed to work with the public camera set first:
+This is now experimentally verified with the Camera Probe APK on stock `V01.00.13`:
 
 ```text
-0 = rear main
-1 = front
+CameraManager.getCameraIdList() -> ["0", "1"]
+
+camera 0:
+  open -> success
+  LEVEL_3
+  RAW advertised
+  RAW_SENSOR -> up to 4096×3072
+  JPEG -> includes 8192×6144
+  accessible vendor characteristics -> 35
+
+camera 1:
+  open -> success
+  FULL
+  RAW not advertised
+  JPEG -> includes 6560×4928
+  accessible vendor characteristics -> 30
+
+camera 2 -> not returned to the ordinary app
+camera 3 -> not returned to the ordinary app
 ```
 
-The exact result from `CameraManager.getCameraIdList()` in a third-party process should still be verified with a probe APK rather than assumed from CameraService.
+This closes the normal-app visibility question: stock third-party applications get public IDs `0` and `1`, while the telephoto physical camera and logical main+tele camera remain hidden behind the system-camera boundary.
+
+It also shows that the normal stock-app backend can expose the vendor high-resolution still paths as ordinary JPEG stream sizes even though the standard ultra-high-resolution capability is not advertised.
 
 ### Privileged/system build on SableOS
 
@@ -283,29 +317,42 @@ Core design rule:
 
 The Titan 2 and Titan 2 Elite investigations show why those layers cannot be collapsed into a single "camera supports X" statement.
 
-## Immediate next step: Camera Probe
+## Camera Probe status and next test
 
-Before building the full camera UI, create a small reusable Camera2 probe APK.
+Camera Probe v0.1 is now built and device-tested as a normal APK on stock Titan 2.
 
-Required first version:
+Completed:
 
 1. enumerate `CameraManager.getCameraIdList()`;
 2. dump standard `CameraCharacteristics`;
 3. record `physicalCameraIds`;
 4. dump stream configuration maps;
-5. enumerate vendor-tag names/values that are accessible to the process;
-6. attempt to open every returned camera;
-7. optionally capture one preview frame/JPEG;
-8. export a normalized JSON report.
+5. enumerate accessible vendor characteristics;
+6. open every returned camera;
+7. export normalized JSON.
 
-The same probe should later be run as:
+Validated result:
 
-- a normal APK on stock Titan 2;
-- a privileged/system APK on SableOS;
-- the equivalent normal/privileged builds on Titan 2 Elite;
-- Q27 only after current/retail firmware evidence is available.
+```text
+visible IDs = [0, 1]
+0 open = PASS
+1 open = PASS
+2/3 absent from ordinary app enumeration
+```
 
-This makes the probe code directly reusable by Sable Camera rather than disposable research code.
+The next probe increment should perform real still capture rather than more metadata-only archaeology:
+
+1. rear JPEG at a conventional size;
+2. rear JPEG at `8192×6144`;
+3. rear RAW at `4096×3072`;
+4. front JPEG at a conventional size;
+5. front JPEG at `6560×4928`;
+6. record capture latency, output byte size and JPEG dimensions;
+7. record failure reason if the HAL advertises a size that cannot actually capture.
+
+After that, inspect the 35 rear / 30 front vendor characteristics exposed to the ordinary app and identify which AGOLD/MediaTek controls are useful for Sable Camera.
+
+The same reporting/capture core should later run as a privileged/system APK on SableOS and then on Titan 2 Elite. Q27 remains deferred until current/retail firmware evidence is available.
 
 ## Cross-device lessons from Titan 2 Elite community work
 
