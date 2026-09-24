@@ -16,6 +16,7 @@ public final class MainActivity extends Activity {
     private static final int CAMERA_PERMISSION_REQUEST = 1001;
 
     private Button runButton;
+    private Button captureButton;
     private TextView statusView;
 
     @Override
@@ -45,9 +46,14 @@ public final class MainActivity extends Activity {
         content.addView(explanation);
 
         runButton = new Button(this);
-        runButton.setText("Run probe");
-        runButton.setOnClickListener(v -> ensurePermissionAndRun());
+        runButton.setText("Run metadata probe");
+        runButton.setOnClickListener(v -> ensurePermissionAndRun(false));
         content.addView(runButton);
+
+        captureButton = new Button(this);
+        captureButton.setText("Run JPEG capture tests");
+        captureButton.setOnClickListener(v -> ensurePermissionAndRun(true));
+        content.addView(captureButton);
 
         statusView = new TextView(this);
         statusView.setText("Ready.");
@@ -61,9 +67,17 @@ public final class MainActivity extends Activity {
         setContentView(scroll);
     }
 
-    private void ensurePermissionAndRun() {
+    private boolean pendingCaptureTest;
+
+    private void ensurePermissionAndRun(boolean captureTest) {
+        pendingCaptureTest = captureTest;
+
         if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            runProbe();
+            if (captureTest) {
+                runCaptureTests();
+            } else {
+                runProbe();
+            }
             return;
         }
 
@@ -87,14 +101,54 @@ public final class MainActivity extends Activity {
 
         if (grantResults.length > 0
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            runProbe();
+            if (pendingCaptureTest) {
+                runCaptureTests();
+            } else {
+                runProbe();
+            }
         } else {
             statusView.setText("Camera permission is required to perform open tests.");
         }
     }
 
+
+    private void runCaptureTests() {
+        runButton.setEnabled(false);
+        captureButton.setEnabled(false);
+        statusView.setText(
+                "Running JPEG still-capture tests… close other camera apps. " +
+                "Maximum-resolution captures may take several seconds."
+        );
+
+        new Thread(() -> {
+            try {
+                StillCaptureTester.Result result = StillCaptureTester.run(this);
+
+                runOnUiThread(() -> {
+                    runButton.setEnabled(true);
+                    captureButton.setEnabled(true);
+                    statusView.setText(
+                            "JPEG capture tests complete.\n\n" +
+                            "Saved report:\n" + result.latestFile().getAbsolutePath() +
+                            "\n\nRaw JPEGs are in the captures subdirectory."
+                    );
+                });
+            } catch (Throwable t) {
+                runOnUiThread(() -> {
+                    runButton.setEnabled(true);
+                    captureButton.setEnabled(true);
+                    statusView.setText(
+                            "Capture tests failed:\n" +
+                            t.getClass().getName() + ": " + t.getMessage()
+                    );
+                });
+            }
+        }, "camera-capture-worker").start();
+    }
+
     private void runProbe() {
         runButton.setEnabled(false);
+        captureButton.setEnabled(false);
         statusView.setText("Running Camera2 probe… close other camera apps while this runs.");
 
         new Thread(() -> {
@@ -104,6 +158,7 @@ public final class MainActivity extends Activity {
 
                 runOnUiThread(() -> {
                     runButton.setEnabled(true);
+                    captureButton.setEnabled(true);
                     statusView.setText(
                             "Probe complete.\n\n" +
                             "Visible camera IDs: " + result.visibleCameraIds() + "\n\n" +
@@ -115,6 +170,7 @@ public final class MainActivity extends Activity {
             } catch (Throwable t) {
                 runOnUiThread(() -> {
                     runButton.setEnabled(true);
+                    captureButton.setEnabled(true);
                     statusView.setText(
                             "Probe failed:\n" +
                             t.getClass().getName() + ": " + t.getMessage()
