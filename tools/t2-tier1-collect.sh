@@ -188,13 +188,17 @@ echo "===== package paths/names (candidate filter) ====="
 pm list packages -f 2>/dev/null   | grep -Ei "agui|unihertz|kika|keyboard|input|mouse|touch|gesture|subscreen|sub\.screen|secondary|launcher|systemui"   || true
 
 echo
-echo "===== enabled IMEs ====="
+echo "===== enabled IMEs (short form) ====="
 ime list -s 2>/dev/null || true
 
 echo
-echo "===== all IMEs ====="
-ime list -a 2>/dev/null || true
+echo "===== current default IME ====="
+settings get secure default_input_method 2>/dev/null || true
 '
+
+  # Keep the very verbose subtype inventory private in its own file so the
+  # reviewed summary does not get swamped by hundreds of IME subtype lines.
+  capture_shell ime-list-all.txt ime list -a
 }
 
 capture_runtime_owners() {
