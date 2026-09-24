@@ -82,7 +82,9 @@ standard ultra-high-resolution API:   not advertised
 AGOLD superResolution tag:            8192×6144
 ```
 
-This is stronger than the earlier conclusion that the ~50 MP mode was only a vendor-hidden path. Actual successful capture at 8192×6144 still needs to be tested before treating it as a proven working capture mode.
+This is stronger than the earlier conclusion that the ~50 MP mode was only a vendor-hidden path. Actual third-party capture has now been proven at `8192×6144`: the probe wrote a valid JPEG of 12,881,437 bytes, and host-side inspection confirmed the encoded dimensions are 8192×6144. The probe's end-to-end test took 538 ms including camera open, session creation, capture and file write.
+
+This proves an ordinary app-visible ~50.3 MP JPEG path. It does **not** prove 50 MP RAW or establish whether the JPEG is sensor-native remosaic versus vendor super-resolution processing.
 
 MediaTek vendor metadata also advertises 1920×1080 at 60 fps for high-frame-rate operation and an EIS-compatible 1080p60 limit.
 
@@ -115,7 +117,9 @@ AGOLD's `superResolution` tag advertises:
 
 which is approximately 32.3 MP.
 
-The normal third-party Camera2 probe also sees `6560×4928` in the standard JPEG output stream map. The front camera still does not advertise RAW, and its ordinary YUV output sizes top out below that full-resolution JPEG path. As with the rear high-resolution JPEG mode, successful capture at 6560×4928 still needs to be proven experimentally.
+The normal third-party Camera2 probe also sees `6560×4928` in the standard JPEG output stream map. The front camera still does not advertise RAW, and its ordinary YUV output sizes top out below that full-resolution JPEG path. Successful third-party capture has now been proven at `6560×4928`: the probe wrote a valid JPEG of 7,399,576 bytes, and host-side inspection confirmed the encoded dimensions are 6560×4928. The end-to-end test took 507 ms including camera open, session creation, capture and file write.
+
+This proves an ordinary app-visible ~32.3 MP front JPEG path, but it still does not establish the exact sensor/processing mode used to generate that JPEG.
 
 ## Rear telephoto camera
 
@@ -340,17 +344,27 @@ visible IDs = [0, 1]
 2/3 absent from ordinary app enumeration
 ```
 
-The next probe increment should perform real still capture rather than more metadata-only archaeology:
+JPEG still-capture validation is now complete for the ordinary app:
 
-1. rear JPEG at a conventional size;
-2. rear JPEG at `8192×6144`;
-3. rear RAW at `4096×3072`;
-4. front JPEG at a conventional size;
-5. front JPEG at `6560×4928`;
-6. record capture latency, output byte size and JPEG dimensions;
-7. record failure reason if the HAL advertises a size that cannot actually capture.
+```text
+camera 0 conventional 3264×2448 -> PASS, 3,059,514 bytes, 444 ms
+camera 0 maximum      8192×6144 -> PASS, 12,881,437 bytes, 538 ms
 
-After that, inspect the 35 rear / 30 front vendor characteristics exposed to the ordinary app and identify which AGOLD/MediaTek controls are useful for Sable Camera.
+camera 1 conventional 3264×2448 -> PASS, 2,662,063 bytes, 451 ms
+camera 1 maximum      6560×4928 -> PASS, 7,399,576 bytes, 507 ms
+```
+
+Host-side inspection confirmed all four JPEG files encode the requested dimensions.
+
+The timings above are probe end-to-end timings and include camera open, session setup, capture and file write. They are not pure shutter/exposure latency.
+
+The next useful tests are:
+
+1. rear RAW capture at `4096×3072`;
+2. inspect the 35 rear / 30 front vendor characteristics exposed to the ordinary app;
+3. identify which AGOLD/MediaTek request/result controls are writable/useful from a normal app;
+4. compare conventional versus maximum JPEG detail to determine whether the high-resolution modes provide real additional scene detail or primarily vendor upscaling/super-resolution;
+5. keep telephoto/logical-camera privilege work deferred to the SableOS system-app phase.
 
 The same reporting/capture core should later run as a privileged/system APK on SableOS and then on Titan 2 Elite. Q27 remains deferred until current/retail firmware evidence is available.
 
