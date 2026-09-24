@@ -8,6 +8,8 @@ This work is separate from the deferred SableOS operating-system bring-up. The g
 
 Raw dumps remain private on `ai-g732`; this document records only redacted, reproducible findings.
 
+For a consolidated comparison of what is achievable as a normal APK, with rooted stock firmware, and later as a privileged SableOS system app — including how those paths relate to GCam-style functionality and image quality — see [Sable Camera: No-Root, Rooted-Stock, and SableOS Capability Roadmap](CAMERA_ROOT_VS_NO_ROOT.md).
+
 ## Camera topology
 
 CameraService reports:
