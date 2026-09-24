@@ -1,5 +1,20 @@
 # Unihertz Titan 2
 
+## SableOS keyboard-first research handoff
+
+For research that directly feeds SableOS Titan 2 / Titan 2 Elite device
+adapters, keyboard-first UI and N0 acceptance, use:
+
+- [Titan family SableOS research checklist](docs/TITAN_FAMILY_SABLEOS_RESEARCH_CHECKLIST.md)
+- [Camera research](docs/CAMERA_RESEARCH.md)
+- [Physical-keyboard app research](docs/KEYBOARD_APP_RESEARCH.md)
+- [SableOS bring-up contract](docs/SABLEOS_BRINGUP_CONTRACT.md)
+
+The checklist prioritizes input-event mapping, display/input topology, stock
+keyboard/SubScreen ownership and an independent Titan 2 Elite factory baseline
+before additional broad firmware reverse engineering.
+
+
 Bounded device research for a future SableOS Titan 2 bring-up, plus focused application research for physical-keyboard phones.
 
 ## Status
