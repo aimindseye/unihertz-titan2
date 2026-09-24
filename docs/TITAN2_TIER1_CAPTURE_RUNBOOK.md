@@ -102,7 +102,7 @@ Build the matrix in this order:
 5. Alt;
 6. Fn/Sym;
 7. D-pad/navigation keys;
-8. red programmable key(s);
+8. side-mounted Func1 and Func2 programmable buttons;
 9. Home/Back/Recents candidates;
 10. camera-compatible shutter candidates;
 11. keyboard-backlight keys/gestures;
@@ -227,11 +227,12 @@ Sable-owned presentation behavior
 
 Target behaviors:
 
+- Func1 / Func2 programmable side buttons;
 - keyboard remapping;
 - mouse mode;
 - shortcuts;
 - keyboard backlight;
-- programmable/red buttons;
+- programmable Func1/Func2 buttons;
 - SubScreen lifecycle/input/security;
 - Kika integration.
 
