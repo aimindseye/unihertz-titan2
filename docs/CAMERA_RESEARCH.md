@@ -388,12 +388,41 @@ Host-side inspection confirmed all four JPEG files encode the requested dimensio
 
 The timings above are probe end-to-end timings and include camera open, session setup, capture and file write. They are not pure shutter/exposure latency.
 
+Rear RAW capture is now proven from the ordinary app:
+
+```text
+camera 0 RAW_SENSOR 4096×3072 -> PASS
+DNG size: 25,196,844 bytes
+probe end-to-end time: 472 ms
+
+camera 1 -> skipped; RAW capability/stream unavailable
+```
+
+Host-side inspection identifies the file as TIFF/DNG-style image data at 4096×3072 with Titan 2 camera metadata. This closes the ordinary-app rear RAW path: standard Camera2 `RAW_SENSOR` + `DngCreator` works without privilege.
+
+The refreshed vendor-key inventory also shows that the normal app can see a much larger request/result surface than the characteristics alone suggested. Notable request/session keys include:
+
+- `com.agold.feature.operationMode`;
+- MediaTek ZSL controls;
+- MediaTek HDR session/request controls;
+- MFNR/MFB and 3DNR controls;
+- EIS controls;
+- rear HFR control;
+- in-sensor-zoom hints/status;
+- RAW-processing controls including packed RAW, RAW BPP, raw10 conversion, processRaw, `remosaicenable`, and `seamless.remosaicenable`.
+
+Several matching result keys are visible for HDR, MFNR, ZSL, in-sensor zoom, 3A metrics and other features.
+
+No vendor physical-request keys are exposed on either public camera.
+
+A key practical result is that the proven `8192×6144` rear JPEG and `6560×4928` front JPEG captures required no proprietary request tag. The baseline high-resolution still path should therefore be implemented from the standard stream map first, with vendor controls treated as optional enhancements only after controlled testing.
+
 The next useful tests are:
 
-1. rear RAW capture at `4096×3072`;
-2. inspect the 35 rear / 30 front vendor characteristics exposed to the ordinary app;
-3. identify which AGOLD/MediaTek request/result controls are writable/useful from a normal app;
-4. compare conventional versus maximum JPEG detail to determine whether the high-resolution modes provide real additional scene detail or primarily vendor upscaling/super-resolution;
+1. inspect DNG metadata/CFA/black-white level/color matrices;
+2. compare conventional versus maximum JPEG detail to determine whether the high-resolution modes add real scene detail versus interpolation/vendor super-resolution;
+3. identify safe request values for selected vendor controls from stock-camera traces or MediaTek definitions before attempting to set them;
+4. start extracting the reusable normal-app camera backend from the probe;
 5. keep telephoto/logical-camera privilege work deferred to the SableOS system-app phase.
 
 The same reporting/capture core should later run as a privileged/system APK on SableOS and then on Titan 2 Elite. Q27 remains deferred until current/retail firmware evidence is available.
