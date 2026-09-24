@@ -456,3 +456,35 @@ Prototype OTA and component information may be useful later, but conclusions fro
 Raw CameraService dumps, logs, app-private diagnostics and future probe exports stay under the private Titan 2 artifact area on `ai-g732` until reviewed/redacted.
 
 Do not commit device serials, private logs or unreviewed vendor diagnostics.
+
+
+## SableOS integration handoff — 2026-09-24
+
+Pixel 7 / Panther R9 is now frozen as the accepted touch-first reference. Titan
+2 becomes the active keyboard-first SableOS portability target, with Titan 2
+Elite following as an independent device qualification.
+
+Camera integration decision:
+
+- Sable Camera should be included in keyboard-first system images rather than
+  treated as an optional sideloaded app;
+- the ordinary Camera2 path remains the baseline and must work without special
+  privilege;
+- a privileged/system backend may request SYSTEM_CAMERA only on a device where
+  physical evidence proves hidden camera value and the negative-access tests
+  pass;
+- common camera core/capability/UI code must not fork between Titan 2 and Titan
+  2 Elite;
+- device profiles own topology, vendor-tag experiments and proven privileged
+  camera requirements;
+- stock vendor camera HAL/ISP remains the initial hardware path for N0
+  portability work.
+
+The current normal-app Titan 2 evidence already justifies starting a reusable
+camera core: public rear/front enumeration, high-resolution JPEG capture and
+rear RAW/DNG are proven. Hidden tele/logical-camera work stays deferred to the
+system-image integration phase.
+
+Titan 2 Elite must repeat the capability inventory independently when the device
+arrives; community Elite results are useful hypotheses, not Titan 2 or SableOS
+runtime proof.
