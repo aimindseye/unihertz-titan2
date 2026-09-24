@@ -3,6 +3,7 @@ package org.sableos.camera;
 import android.app.Activity;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -11,7 +12,9 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.MeteringRectangle;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
@@ -57,6 +60,7 @@ final class CameraController implements TextureView.SurfaceTextureListener {
     private CameraCaptureSession captureSession;
     private ImageReader imageReader;
     private Surface previewSurface;
+    private CaptureRequest.Builder previewRequestBuilder;
 
     private CameraCharacteristics characteristics;
     private Size previewSize;
@@ -70,6 +74,8 @@ final class CameraController implements TextureView.SurfaceTextureListener {
 
     private Image pendingRawImage;
     private TotalCaptureResult pendingRawResult;
+    private MeteringRectangle[] focusAfRegions;
+    private MeteringRectangle[] focusAeRegions;
 
     CameraController(
             Activity activity,
@@ -136,6 +142,13 @@ final class CameraController implements TextureView.SurfaceTextureListener {
         Handler handler = cameraHandler;
         if (handler != null) {
             handler.post(this::captureInternal);
+        }
+    }
+
+    void focusAt(float viewX, float viewY) {
+        Handler handler = cameraHandler;
+        if (handler != null) {
+            handler.post(() -> focusAtInternal(viewX, viewY));
         }
     }
 
@@ -345,6 +358,7 @@ final class CameraController implements TextureView.SurfaceTextureListener {
             request.addTarget(previewSurface);
             applyAutoControls(request);
 
+            previewRequestBuilder = request;
             captureSession.setRepeatingRequest(request.build(), null, cameraHandler);
             publishState();
             status("Ready — " + modeDescription());
@@ -483,7 +497,13 @@ final class CameraController implements TextureView.SurfaceTextureListener {
         pendingRawResult = null;
 
         try {
-            Uri uri = CaptureStore.saveDng(activity, characteristics, result, image);
+            Uri uri = CaptureStore.saveDng(
+                    activity,
+                    characteristics,
+                    result,
+                    image,
+                    jpegOrientation()
+            );
             saved(uri, captureSize.getWidth() + "×" + captureSize.getHeight() + " DNG");
         } catch (Exception e) {
             status("DNG save failed: " + e.getMessage());
@@ -495,6 +515,20 @@ final class CameraController implements TextureView.SurfaceTextureListener {
     private void applyAutoControls(CaptureRequest.Builder request) {
         request.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
         request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
+
+        if (focusAfRegions != null) {
+            Integer maxAf = characteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AF);
+            if (maxAf != null && maxAf > 0) {
+                request.set(CaptureRequest.CONTROL_AF_REGIONS, focusAfRegions);
+            }
+        }
+
+        if (focusAeRegions != null) {
+            Integer maxAe = characteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AE);
+            if (maxAe != null && maxAe > 0) {
+                request.set(CaptureRequest.CONTROL_AE_REGIONS, focusAeRegions);
+            }
+        }
 
         int[] modes = characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
         if (modes == null) {
@@ -529,22 +563,42 @@ final class CameraController implements TextureView.SurfaceTextureListener {
             sensor = 0;
         }
 
+        int deviceDegrees = displayDegrees();
+
+        if (lensFacing != null
+                && lensFacing == CameraCharacteristics.LENS_FACING_FRONT) {
+            return (sensor + deviceDegrees + 360) % 360;
+        }
+
+        return (sensor - deviceDegrees + 360) % 360;
+    }
+
+    private int displayDegrees() {
         int rotation = textureView.getDisplay() == null
                 ? Surface.ROTATION_0
                 : textureView.getDisplay().getRotation();
 
-        int deviceDegrees = switch (rotation) {
+        return switch (rotation) {
             case Surface.ROTATION_90 -> 90;
             case Surface.ROTATION_180 -> 180;
             case Surface.ROTATION_270 -> 270;
             default -> 0;
         };
+    }
 
-        if (lensFacing != null && lensFacing == CameraCharacteristics.LENS_FACING_FRONT) {
-            deviceDegrees = -deviceDegrees;
+    private int relativeSensorRotation() {
+        Integer sensor = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+        Integer lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING);
+        if (sensor == null) {
+            sensor = 0;
         }
 
-        return (sensor + deviceDegrees + 360) % 360;
+        int display = displayDegrees();
+        if (lensFacing != null
+                && lensFacing == CameraCharacteristics.LENS_FACING_FRONT) {
+            return (sensor + display + 360) % 360;
+        }
+        return (sensor - display + 360) % 360;
     }
 
     private void configureTransform() {
@@ -559,60 +613,270 @@ final class CameraController implements TextureView.SurfaceTextureListener {
                 return;
             }
 
-            Integer sensor = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
-            Integer lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING);
-            if (sensor == null) {
-                sensor = 0;
+            int relativeRotation = relativeSensorRotation();
+            boolean swapped = relativeRotation == 90 || relativeRotation == 270;
+
+            if (textureView instanceof AutoFitTextureView autoFit) {
+                if (swapped) {
+                    autoFit.setAspectRatio(
+                            previewSize.getHeight(),
+                            previewSize.getWidth()
+                    );
+                } else {
+                    autoFit.setAspectRatio(
+                            previewSize.getWidth(),
+                            previewSize.getHeight()
+                    );
+                }
             }
 
             int displayRotation = textureView.getDisplay() == null
                     ? Surface.ROTATION_0
                     : textureView.getDisplay().getRotation();
 
-            int displayDegrees = switch (displayRotation) {
-                case Surface.ROTATION_90 -> 90;
-                case Surface.ROTATION_180 -> 180;
-                case Surface.ROTATION_270 -> 270;
-                default -> 0;
-            };
+            Matrix matrix = new Matrix();
+            RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
+            float centerX = viewRect.centerX();
+            float centerY = viewRect.centerY();
 
-            int relativeRotation;
-            if (lensFacing != null
-                    && lensFacing == CameraCharacteristics.LENS_FACING_FRONT) {
-                relativeRotation = (sensor + displayDegrees) % 360;
-            } else {
-                relativeRotation = (sensor - displayDegrees + 360) % 360;
+            if (displayRotation == Surface.ROTATION_90
+                    || displayRotation == Surface.ROTATION_270) {
+                RectF bufferRect = new RectF(
+                        0,
+                        0,
+                        previewSize.getHeight(),
+                        previewSize.getWidth()
+                );
+                bufferRect.offset(
+                        centerX - bufferRect.centerX(),
+                        centerY - bufferRect.centerY()
+                );
+                matrix.setRectToRect(
+                        viewRect,
+                        bufferRect,
+                        Matrix.ScaleToFit.FILL
+                );
+
+                float scale = Math.max(
+                        (float) viewHeight / previewSize.getHeight(),
+                        (float) viewWidth / previewSize.getWidth()
+                );
+                matrix.postScale(scale, scale, centerX, centerY);
+                matrix.postRotate(
+                        90f * (displayRotation - 2),
+                        centerX,
+                        centerY
+                );
+            } else if (displayRotation == Surface.ROTATION_180) {
+                matrix.postRotate(180f, centerX, centerY);
             }
 
-            float bufferWidth = previewSize.getWidth();
-            float bufferHeight = previewSize.getHeight();
-            float rotatedWidth =
-                    (relativeRotation == 90 || relativeRotation == 270)
-                            ? bufferHeight
-                            : bufferWidth;
-            float rotatedHeight =
-                    (relativeRotation == 90 || relativeRotation == 270)
-                            ? bufferWidth
-                            : bufferHeight;
-
-            float scale = Math.max(
-                    viewWidth / rotatedWidth,
-                    viewHeight / rotatedHeight
-            );
-
-            Matrix matrix = new Matrix();
-            matrix.postTranslate(-bufferWidth / 2f, -bufferHeight / 2f);
-            matrix.postRotate(relativeRotation);
-            matrix.postScale(scale, scale);
-            matrix.postTranslate(viewWidth / 2f, viewHeight / 2f);
-
+            Integer lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING);
             if (lensFacing != null
                     && lensFacing == CameraCharacteristics.LENS_FACING_FRONT) {
-                matrix.postScale(-1f, 1f, viewWidth / 2f, viewHeight / 2f);
+                matrix.postScale(-1f, 1f, centerX, centerY);
             }
 
             textureView.setTransform(matrix);
         });
+    }
+
+    private void focusAtInternal(float viewX, float viewY) {
+        if (captureSession == null
+                || previewRequestBuilder == null
+                || characteristics == null
+                || previewSize == null) {
+            status("Camera is not ready to focus.");
+            return;
+        }
+
+        Integer maxAf = characteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AF);
+        Integer maxAe = characteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AE);
+
+        boolean supportsAfRegion = maxAf != null && maxAf > 0;
+        boolean supportsAeRegion = maxAe != null && maxAe > 0;
+
+        if (!supportsAfRegion && !supportsAeRegion) {
+            status("Tap metering regions are not supported on this camera.");
+            return;
+        }
+
+        Rect active = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+        if (active == null) {
+            status("Sensor active array unavailable.");
+            return;
+        }
+
+        Matrix inverse = new Matrix();
+        Matrix transform = new Matrix();
+        textureView.getTransform(transform);
+
+        if (!transform.invert(inverse)) {
+            status("Unable to map focus point.");
+            return;
+        }
+
+        float[] point = new float[] { viewX, viewY };
+        inverse.mapPoints(point);
+
+        float nx = clamp(point[0] / Math.max(1f, textureView.getWidth()), 0f, 1f);
+        float ny = clamp(point[1] / Math.max(1f, textureView.getHeight()), 0f, 1f);
+
+        int sensorX = active.left + Math.round(nx * active.width());
+        int sensorY = active.top + Math.round(ny * active.height());
+
+        int regionWidth = Math.max(64, active.width() / 8);
+        int regionHeight = Math.max(64, active.height() / 8);
+
+        int left = clampInt(
+                sensorX - regionWidth / 2,
+                active.left,
+                active.right - regionWidth
+        );
+        int top = clampInt(
+                sensorY - regionHeight / 2,
+                active.top,
+                active.bottom - regionHeight
+        );
+
+        MeteringRectangle region = new MeteringRectangle(
+                left,
+                top,
+                regionWidth,
+                regionHeight,
+                MeteringRectangle.METERING_WEIGHT_MAX
+        );
+
+        focusAfRegions = supportsAfRegion
+                ? new MeteringRectangle[] { region }
+                : null;
+        focusAeRegions = supportsAeRegion
+                ? new MeteringRectangle[] { region }
+                : null;
+
+        try {
+            if (supportsAfRegion) {
+                previewRequestBuilder.set(
+                        CaptureRequest.CONTROL_AF_REGIONS,
+                        focusAfRegions
+                );
+                previewRequestBuilder.set(
+                        CaptureRequest.CONTROL_AF_MODE,
+                        CaptureRequest.CONTROL_AF_MODE_AUTO
+                );
+                previewRequestBuilder.set(
+                        CaptureRequest.CONTROL_AF_TRIGGER,
+                        CaptureRequest.CONTROL_AF_TRIGGER_CANCEL
+                );
+                captureSession.capture(
+                        previewRequestBuilder.build(),
+                        null,
+                        cameraHandler
+                );
+
+                previewRequestBuilder.set(
+                        CaptureRequest.CONTROL_AF_TRIGGER,
+                        CaptureRequest.CONTROL_AF_TRIGGER_START
+                );
+            }
+
+            if (supportsAeRegion) {
+                previewRequestBuilder.set(
+                        CaptureRequest.CONTROL_AE_REGIONS,
+                        focusAeRegions
+                );
+                previewRequestBuilder.set(
+                        CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+                        CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START
+                );
+            }
+
+            status("Focusing…");
+
+            captureSession.capture(
+                    previewRequestBuilder.build(),
+                    new CameraCaptureSession.CaptureCallback() {
+                        @Override
+                        public void onCaptureCompleted(
+                                CameraCaptureSession session,
+                                CaptureRequest request,
+                                TotalCaptureResult result
+                        ) {
+                            Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
+                            restorePreviewAfterFocus();
+                            if (afState != null
+                                    && afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED) {
+                                status("Focus locked.");
+                            } else if (afState != null
+                                    && afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
+                                status("Focus completed; lock not achieved.");
+                            } else {
+                                status("Focus point applied.");
+                            }
+                        }
+                    },
+                    cameraHandler
+            );
+        } catch (CameraAccessException e) {
+            status("Tap focus failed: " + e.getMessage());
+        }
+    }
+
+    private void restorePreviewAfterFocus() {
+        if (captureSession == null || previewRequestBuilder == null) {
+            return;
+        }
+
+        try {
+            previewRequestBuilder.set(
+                    CaptureRequest.CONTROL_AF_TRIGGER,
+                    CaptureRequest.CONTROL_AF_TRIGGER_IDLE
+            );
+            previewRequestBuilder.set(
+                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE
+            );
+
+            int[] modes =
+                    characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
+            if (contains(modes, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)) {
+                previewRequestBuilder.set(
+                        CaptureRequest.CONTROL_AF_MODE,
+                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+                );
+            }
+
+            captureSession.setRepeatingRequest(
+                    previewRequestBuilder.build(),
+                    null,
+                    cameraHandler
+            );
+        } catch (CameraAccessException e) {
+            status("Preview resume after focus failed: " + e.getMessage());
+        }
+    }
+
+    private static boolean contains(int[] values, int wanted) {
+        if (values == null) {
+            return false;
+        }
+        for (int value : values) {
+            if (value == wanted) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private static int clampInt(int value, int min, int max) {
+        if (max < min) {
+            return min;
+        }
+        return Math.max(min, Math.min(max, value));
     }
 
     private void publishState() {
@@ -659,6 +923,7 @@ final class CameraController implements TextureView.SurfaceTextureListener {
             captureSession.close();
             captureSession = null;
         }
+        previewRequestBuilder = null;
         if (imageReader != null) {
             imageReader.close();
             imageReader = null;
@@ -672,6 +937,8 @@ final class CameraController implements TextureView.SurfaceTextureListener {
             pendingRawImage = null;
         }
         pendingRawResult = null;
+        focusAfRegions = null;
+        focusAeRegions = null;
     }
 
     private void closeCamera() {
