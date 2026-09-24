@@ -142,3 +142,18 @@ Next useful work:
 - compare conventional vs maximum JPEG image detail before deciding how Sable Camera should label the high-resolution modes.
 
 Telephoto/logical IDs 2 and 3 remain a later privileged/system-camera integration target.
+
+
+## Vendor-key boundary
+
+The ordinary stock app currently sees 35 rear and 30 front non-`android.*` characteristics, all MediaTek-prefixed in the observed report. The AGOLD `superResolution` characteristic visible from lower-level CameraService/HAL diagnostics is not present in the ordinary app's `CameraCharacteristics` key list.
+
+The probe now also inventories non-`android.*` CaptureRequest, CaptureResult, session and physical-request key names. This distinguishes "feature advertised by a characteristic" from "control/result actually exposed to an ordinary app."
+
+## RAW DNG test
+
+The current branch adds **Run RAW DNG capture test**.
+
+It exercises only ordinary-app-visible cameras that advertise both the standard RAW capability and a `RAW_SENSOR` output size. On the current Titan 2 metadata this is expected to exercise rear camera `0` at its largest advertised RAW size and skip the front camera.
+
+The test writes a DNG using Android's `DngCreator` plus the real `TotalCaptureResult`, then records success/failure, output byte count and end-to-end elapsed time.
