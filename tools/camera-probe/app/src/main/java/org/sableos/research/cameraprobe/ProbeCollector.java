@@ -7,6 +7,8 @@ import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Build;
 import android.os.Handler;
@@ -212,6 +214,22 @@ final class ProbeCollector {
         out.put("streams", describeStreams(map));
 
         out.put("vendorCharacteristics", describeVendorCharacteristics(c));
+        out.put(
+                "vendorRequestKeys",
+                vendorCaptureRequestKeys(c.getAvailableCaptureRequestKeys())
+        );
+        out.put(
+                "vendorResultKeys",
+                vendorCaptureResultKeys(c.getAvailableCaptureResultKeys())
+        );
+        out.put(
+                "vendorSessionKeys",
+                vendorCaptureRequestKeys(c.getAvailableSessionKeys())
+        );
+        out.put(
+                "vendorPhysicalRequestKeys",
+                vendorCaptureRequestKeys(c.getAvailablePhysicalCameraRequestKeys())
+        );
         return out;
     }
 
@@ -281,6 +299,51 @@ final class ProbeCollector {
         }
         out.put("highSpeedVideo", highSpeed);
 
+        return out;
+    }
+
+
+    private static JSONArray vendorCaptureRequestKeys(
+            List<CaptureRequest.Key<?>> keys
+    ) throws JSONException {
+        JSONArray out = new JSONArray();
+        if (keys == null) {
+            return out;
+        }
+
+        List<String> names = new ArrayList<>();
+        for (CaptureRequest.Key<?> key : keys) {
+            String name = key.getName();
+            if (!name.startsWith("android.")) {
+                names.add(name);
+            }
+        }
+        Collections.sort(names);
+        for (String name : names) {
+            out.put(name);
+        }
+        return out;
+    }
+
+    private static JSONArray vendorCaptureResultKeys(
+            List<CaptureResult.Key<?>> keys
+    ) throws JSONException {
+        JSONArray out = new JSONArray();
+        if (keys == null) {
+            return out;
+        }
+
+        List<String> names = new ArrayList<>();
+        for (CaptureResult.Key<?> key : keys) {
+            String name = key.getName();
+            if (!name.startsWith("android.")) {
+                names.add(name);
+            }
+        }
+        Collections.sort(names);
+        for (String name : names) {
+            out.put(name);
+        }
         return out;
     }
 
