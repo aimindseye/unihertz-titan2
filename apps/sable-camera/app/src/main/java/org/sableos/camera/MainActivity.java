@@ -68,6 +68,7 @@ public final class MainActivity extends Activity implements CameraController.Lis
         );
         previewParams.topMargin = pad;
         previewParams.bottomMargin = pad;
+        previewParams.gravity = Gravity.CENTER_HORIZONTAL;
         root.addView(textureView, previewParams);
 
         LinearLayout controls = new LinearLayout(this);
