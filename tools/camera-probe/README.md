@@ -97,7 +97,19 @@ The normal-app visibility boundary is therefore closed: the telephoto and logica
 
 An important additional result is that the ~50 MP rear and ~32 MP front still sizes are exposed to an ordinary app through the standard JPEG stream map even though the standard ultra-high-resolution capability was not observed.
 
-Metadata advertisement is not yet proof that those maximum JPEG modes capture successfully. The next probe increment should perform real still captures at those advertised sizes and record latency, byte size, output dimensions and failure reason.
+Device validation now proves those maximum JPEG modes capture successfully from the ordinary app:
+
+```text
+camera 0 3264x2448 -> PASS
+camera 0 8192x6144 -> PASS
+
+camera 1 3264x2448 -> PASS
+camera 1 6560x4928 -> PASS
+```
+
+Host-side inspection confirmed the encoded JPEG dimensions match the requested sizes.
+
+This proves usable ordinary-app high-resolution JPEG paths. It does not prove rear 50 MP RAW, front RAW, or whether the high-resolution JPEGs are sensor-native remosaic versus vendor super-resolution processing.
 
 A later privileged/system SableOS build can reuse the same reporting/capture core to test the system-camera path.
 
@@ -116,3 +128,17 @@ On the validated Titan 2 metadata this is intended to exercise the ordinary stil
 The capture test records requested size, success/failure, byte count and elapsed time. JPEG outputs are stored privately beneath the app-specific `camera-probe/captures` directory.
 
 Metadata advertisement is not treated as capture proof until this test succeeds on-device.
+
+
+## Current next tests
+
+The metadata and JPEG-availability questions are now closed for the normal stock-app path.
+
+Next useful work:
+
+- rear RAW capture at 4096x3072;
+- review the ordinary-app-visible AGOLD/MediaTek vendor characteristics;
+- identify request/result vendor controls that can be used without privilege;
+- compare conventional vs maximum JPEG image detail before deciding how Sable Camera should label the high-resolution modes.
+
+Telephoto/logical IDs 2 and 3 remain a later privileged/system-camera integration target.
