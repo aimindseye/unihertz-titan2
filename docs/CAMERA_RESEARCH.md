@@ -69,7 +69,22 @@ The AGOLD vendor tag `com.agold.feature.superResolution` advertises:
 8192 × 6144
 ```
 
-which is approximately 50.3 MP. Android's standard maximum-resolution / ultra-high-resolution metadata was not found in the inspected dump, so this should be treated as a vendor-defined capture path rather than standard `ULTRA_HIGH_RESOLUTION_SENSOR` exposure.
+which is approximately 50.3 MP.
+
+A normal third-party Camera2 probe subsequently showed that `8192×6144` is also advertised through the ordinary `SCALER_STREAM_CONFIGURATION_MAP` as a JPEG output size. The same app sees RAW only up to `4096×3072`.
+
+No standard `ULTRA_HIGH_RESOLUTION_SENSOR` capability / maximum-resolution metadata was observed. The best current description is therefore:
+
+```text
+ordinary app-visible JPEG still path: 8192×6144
+ordinary app-visible RAW path:        4096×3072
+standard ultra-high-resolution API:   not advertised
+AGOLD superResolution tag:            8192×6144
+```
+
+This is stronger than the earlier conclusion that the ~50 MP mode was only a vendor-hidden path. Actual third-party capture has now been proven at `8192×6144`: the probe wrote a valid JPEG of 12,881,437 bytes, and host-side inspection confirmed the encoded dimensions are 8192×6144. The probe's end-to-end test took 538 ms including camera open, session creation, capture and file write.
+
+This proves an ordinary app-visible ~50.3 MP JPEG path. It does **not** prove 50 MP RAW or establish whether the JPEG is sensor-native remosaic versus vendor super-resolution processing.
 
 MediaTek vendor metadata also advertises 1920×1080 at 60 fps for high-frame-rate operation and an EIS-compatible 1080p60 limit.
 
@@ -101,6 +116,10 @@ AGOLD's `superResolution` tag advertises:
 ```
 
 which is approximately 32.3 MP.
+
+The normal third-party Camera2 probe also sees `6560×4928` in the standard JPEG output stream map. The front camera still does not advertise RAW, and its ordinary YUV output sizes top out below that full-resolution JPEG path. Successful third-party capture has now been proven at `6560×4928`: the probe wrote a valid JPEG of 7,399,576 bytes, and host-side inspection confirmed the encoded dimensions are 6560×4928. The end-to-end test took 507 ms including camera open, session creation, capture and file write.
+
+This proves an ordinary app-visible ~32.3 MP front JPEG path, but it still does not establish the exact sensor/processing mode used to generate that JPEG.
 
 ## Rear telephoto camera
 
@@ -212,14 +231,63 @@ There are two distinct deployment targets.
 
 ### Normal APK on stock firmware
 
-A normal third-party camera should be designed to work with the public camera set first:
+This is now experimentally verified with the Camera Probe APK on stock `V01.00.13`:
 
 ```text
-0 = rear main
-1 = front
+CameraManager.getCameraIdList() -> ["0", "1"]
+
+camera 0:
+  open -> success
+  LEVEL_3
+  RAW advertised
+  RAW_SENSOR -> up to 4096×3072
+  JPEG -> includes 8192×6144
+  accessible vendor characteristics -> 35
+
+camera 1:
+  open -> success
+  FULL
+  RAW not advertised
+  JPEG -> includes 6560×4928
+  accessible vendor characteristics -> 30
+
+camera 2 -> not returned to the ordinary app
+camera 3 -> not returned to the ordinary app
 ```
 
-The exact result from `CameraManager.getCameraIdList()` in a third-party process should still be verified with a probe APK rather than assumed from CameraService.
+This closes the normal-app visibility question: stock third-party applications get public IDs `0` and `1`, while the telephoto physical camera and logical main+tele camera remain hidden behind the system-camera boundary.
+
+It also shows that the normal stock-app backend can expose the vendor high-resolution still paths as ordinary JPEG stream sizes even though the standard ultra-high-resolution capability is not advertised.
+
+### Vendor characteristics visible to an ordinary app
+
+The normal APK sees 35 non-`android.*` characteristics on camera `0` and 30 on camera `1`. In this app-visible characteristic list, all observed keys are MediaTek-prefixed; the AGOLD `superResolution` characteristic seen from CameraService/HAL diagnostics is **not** exposed as a normal-app `CameraCharacteristics` key.
+
+This is an important API boundary: Sable Camera must discover the working high-resolution JPEG path from the standard stream map rather than depending on the AGOLD characteristic.
+
+Rear camera `0` exposes vendor capability metadata for:
+
+- ZSL availability/default;
+- postview and early-notification support;
+- continuous-shot modes;
+- photo/video/VHDR mode enumerants;
+- MFNR/AI-multiframe mode enumerants;
+- 3D noise reduction;
+- high-frame-rate support with a reported 1920×1080@60 maximum;
+- high-frame-rate EIS with the same 1920×1080@60 maximum;
+- in-sensor-zoom support metadata associated with physical ID `0`;
+- preview compression;
+- AOV/background-service pipeline capability metadata;
+- HDR10+ EIS/VSS support flags;
+- video AI noise-reduction mode enumerants.
+
+Front camera `1` exposes a largely overlapping subset, but its vendor characteristics do not advertise the rear camera's HFR mode/max-resolution entries, in-sensor-zoom physical-ID entry, rear continuous-shot mode `1`, or flash-calibration availability.
+
+The integer vendor-mode values are recorded as raw enumerants. Their semantic names must not be guessed without either MediaTek source/header evidence or controlled request/result experiments.
+
+The `com.mediatek.control.capture.ispMetaSizeForRaw` and `...ispMetaSizeForYuv` values are vendor metadata dimensions and must not be interpreted as sensor/output stream resolutions.
+
+The probe should next inventory ordinary-app-visible **CaptureRequest**, **CaptureResult**, session and physical-request vendor keys. A characteristic saying a feature exists does not prove a normal app can set its request control or observe its result state.
 
 ### Privileged/system build on SableOS
 
@@ -283,29 +351,81 @@ Core design rule:
 
 The Titan 2 and Titan 2 Elite investigations show why those layers cannot be collapsed into a single "camera supports X" statement.
 
-## Immediate next step: Camera Probe
+## Camera Probe status and next test
 
-Before building the full camera UI, create a small reusable Camera2 probe APK.
+Camera Probe v0.1 is now built and device-tested as a normal APK on stock Titan 2.
 
-Required first version:
+Completed:
 
 1. enumerate `CameraManager.getCameraIdList()`;
 2. dump standard `CameraCharacteristics`;
 3. record `physicalCameraIds`;
 4. dump stream configuration maps;
-5. enumerate vendor-tag names/values that are accessible to the process;
-6. attempt to open every returned camera;
-7. optionally capture one preview frame/JPEG;
-8. export a normalized JSON report.
+5. enumerate accessible vendor characteristics;
+6. open every returned camera;
+7. export normalized JSON.
 
-The same probe should later be run as:
+Validated result:
 
-- a normal APK on stock Titan 2;
-- a privileged/system APK on SableOS;
-- the equivalent normal/privileged builds on Titan 2 Elite;
-- Q27 only after current/retail firmware evidence is available.
+```text
+visible IDs = [0, 1]
+0 open = PASS
+1 open = PASS
+2/3 absent from ordinary app enumeration
+```
 
-This makes the probe code directly reusable by Sable Camera rather than disposable research code.
+JPEG still-capture validation is now complete for the ordinary app:
+
+```text
+camera 0 conventional 3264×2448 -> PASS, 3,059,514 bytes, 444 ms
+camera 0 maximum      8192×6144 -> PASS, 12,881,437 bytes, 538 ms
+
+camera 1 conventional 3264×2448 -> PASS, 2,662,063 bytes, 451 ms
+camera 1 maximum      6560×4928 -> PASS, 7,399,576 bytes, 507 ms
+```
+
+Host-side inspection confirmed all four JPEG files encode the requested dimensions.
+
+The timings above are probe end-to-end timings and include camera open, session setup, capture and file write. They are not pure shutter/exposure latency.
+
+Rear RAW capture is now proven from the ordinary app:
+
+```text
+camera 0 RAW_SENSOR 4096×3072 -> PASS
+DNG size: 25,196,844 bytes
+probe end-to-end time: 472 ms
+
+camera 1 -> skipped; RAW capability/stream unavailable
+```
+
+Host-side inspection identifies the file as TIFF/DNG-style image data at 4096×3072 with Titan 2 camera metadata. This closes the ordinary-app rear RAW path: standard Camera2 `RAW_SENSOR` + `DngCreator` works without privilege.
+
+The refreshed vendor-key inventory also shows that the normal app can see a much larger request/result surface than the characteristics alone suggested. Notable request/session keys include:
+
+- `com.agold.feature.operationMode`;
+- MediaTek ZSL controls;
+- MediaTek HDR session/request controls;
+- MFNR/MFB and 3DNR controls;
+- EIS controls;
+- rear HFR control;
+- in-sensor-zoom hints/status;
+- RAW-processing controls including packed RAW, RAW BPP, raw10 conversion, processRaw, `remosaicenable`, and `seamless.remosaicenable`.
+
+Several matching result keys are visible for HDR, MFNR, ZSL, in-sensor zoom, 3A metrics and other features.
+
+No vendor physical-request keys are exposed on either public camera.
+
+A key practical result is that the proven `8192×6144` rear JPEG and `6560×4928` front JPEG captures required no proprietary request tag. The baseline high-resolution still path should therefore be implemented from the standard stream map first, with vendor controls treated as optional enhancements only after controlled testing.
+
+The next useful tests are:
+
+1. inspect DNG metadata/CFA/black-white level/color matrices;
+2. compare conventional versus maximum JPEG detail to determine whether the high-resolution modes add real scene detail versus interpolation/vendor super-resolution;
+3. identify safe request values for selected vendor controls from stock-camera traces or MediaTek definitions before attempting to set them;
+4. start extracting the reusable normal-app camera backend from the probe;
+5. keep telephoto/logical-camera privilege work deferred to the SableOS system-app phase.
+
+The same reporting/capture core should later run as a privileged/system APK on SableOS and then on Titan 2 Elite. Q27 remains deferred until current/retail firmware evidence is available.
 
 ## Cross-device lessons from Titan 2 Elite community work
 
