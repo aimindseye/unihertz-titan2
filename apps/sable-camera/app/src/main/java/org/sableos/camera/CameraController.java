@@ -40,6 +40,8 @@ final class CameraController implements TextureView.SurfaceTextureListener {
             String facing,
             String format,
             String resolution,
+            boolean highResolution,
+            boolean rawMode,
             boolean rawAvailable
     ) {}
 
@@ -626,6 +628,8 @@ final class CameraController implements TextureView.SurfaceTextureListener {
                                 facingName,
                                 format,
                                 resolution,
+                                highResolution,
+                                rawMode,
                                 rawAvailable
                         )
                 )
