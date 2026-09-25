@@ -171,6 +171,18 @@ Record whether the physical key:
 
 ## Phase 5 — primary display and rear SubScreen
 
+For the Titan 2 rear display, prefer the guided helper first:
+
+```bash
+export TITAN_SERIAL="$Titan2"
+bash tools/section-c-subscreen-capture.sh
+```
+
+It walks through rear-display OFF/ON state, single-tap and double-tap wake tests,
+Func1 wake, rear touch/swipe, and main/rear screen coupling. The event windows
+are open-ended: press Enter to start, perform the requested action, then press
+Enter again to stop. There is no countdown timer.
+
 Capture a normal primary-display state first:
 
 ```bash
