@@ -11,12 +11,12 @@ copying current stock UX assignments.
 | Function | Stable identity | Driver / parent | Wake capability | Sable requirement |
 | --- | --- | --- | --- | --- |
 | physical key matrix | `TitanKey`, I2C `6-0058` | exact driver `/sys/bus/i2c/drivers/TitanKey` -> module `aw9523_key`; DTBO sets `matrix_key_enable=1`, `single_key_enable=0`, `led_enable=0`, `gpio_enable=0` | node is `wakeup-source`, but key child sets `wake_up_enable=0`; `wakeup_key=57`, matching the tested Space scan code, so stock screen-off non-wake is statically explained | preserve raw matrix and explicitly choose Sable wake policy |
-| keyboard capacitive surface | `touchPad`, I2C `2-0020` | exact driver `/sys/bus/i2c/drivers/synaptics_dsx_pad` -> module `synaptics_1403_touch`; live `of_node` resolves to `/soc/i2c@11c22000/cap_tkpd@2a` | non-waking in InputManager | preserve raw ABS_MT stream independently of Mouse Mode |
+| keyboard capacitive surface | `touchPad`, I2C `2-0020` | exact driver `synaptics_dsx_pad` -> module `synaptics_1403_touch`; live/DTBO node `/soc/i2c@11c22000/cap_tkpd@2a`, `compatible=mediatek,cap_tkpd`, `reg=0x20`, reset GPIO 4, IRQ GPIO 75, power GPIO 59 | non-waking in InputManager | preserve raw ABS_MT stream independently of Mouse Mode |
 | upper programmable side key | scan 249 / Func1 | DT `mt6363keys/home` sets `linux,keycodes=249` and `wakeup-source`; runtime exposes Func1 on `mtk-pmic-keys` | raw path remains active screen-off and stock policy can wake rear display | preserve independent side-key path; implement wake/presentation policy deliberately |
 | lower programmable side key | `gpio_key-func`, scan 250 / Func2 | exact producer module `gpio_key.ko`; module description `agold gpio key`; DT also contains enabled `agold_gpio_key` (`compatible=mediatek,agold_gpio_key`, GPIO/IRQ 73). PMIC `home2` independently advertises keycode 250 but is not the observed runtime Func2 event source | raw `gpio_key-func` path remains active screen-off; module registers a wakeup source; stock policy does not visibly wake a display | preserve the `gpio_key.ko` side-key path and choose Sable wake/action policy deliberately |
 | hardware volume keys | `gpio-keys` | exact platform driver: `/sys/bus/platform/drivers/gpio-keys`; DT has `volumeup` / `volumedown` children | stock wake semantics can be handled separately | preserve standard Linux key path |
 | synthetic helper | `ff_key`, virtual input device | producer unresolved; exact-name scan across extracted V01.00.13 vendor-DLKM modules found no `ff_key` owner | non-waking in InputManager | preserve only if required after consumer mapping; do not block first adapter on it |
-| keyboard illumination | dedicated keypad-light stack | AW9523 parent sets `led_enable=0`; DTBO `compatible=agold,keypad-led`, `min_brightness=8`, `pwm_ch=2`; exact module `keypad_led.ko` describes itself as `Keypad LED PWM Driver`, depends on `mtk-pwm,mtk_disp_notify`, and exports sysfs attribute `keyled_brightness` | n/a | use the `keypad_led` PWM backend; locate/document the runtime `keyled_brightness` path and expose Sable-owned brightness/timeout policy |
+| keyboard illumination | dedicated keypad-light stack | AW9523 parent sets `led_enable=0`; DTBO `compatible=agold,keypad-led`, `min_brightness=8`, `pwm_ch=2`; `keypad_led.ko` is the PWM driver. Live platform device is `/sys/devices/platform/keypad_led`, driver `keypad-led`, attribute `/sys/devices/platform/keypad_led/keyled_brightness`; shell domain cannot currently read/stat the attribute value | n/a | use the `keypad_led` PWM backend; Sable should own brightness/timeout policy and expose a readable adapter API |
 
 Do not hard-code event numbers.
 
@@ -42,9 +42,12 @@ inferred boundaries:
 - `touchPad` is rooted at I2C address `2-0020`, bound to driver
   `synaptics_dsx_pad`, and that driver resolves exactly to kernel module
   `synaptics_1403_touch`. Its live firmware-node link resolves to
-  `/soc/i2c@11c22000/cap_tkpd@2a`. This supersedes the earlier inference from
-  the loaded `hynitron_touchpad` module; the Hynitron 410x502 nodes belong to
-  the rear SubScreen touch path.
+  `/soc/i2c@11c22000/cap_tkpd@2a`; DTBO decodes that node as
+  `compatible=mediatek,cap_tkpd`, `reg=0x20`, reset GPIO 4, IRQ GPIO 75 and
+  power GPIO 59. The node name's `@2a` suffix is therefore not the runtime I2C
+  address; use `reg=0x20` / live `2-0020` as the authoritative address. This
+  supersedes the Hynitron inference; the Hynitron 410x502 nodes are rear
+  SubScreen touch candidates.
 - `mtk-pmic-keys` is bound to platform driver `mtk-pmic-keys`, which resolves
   exactly to kernel module `mtk_pmic_keys`; DT exposes `mt6363keys` children
   including `power`, `home`, and `home2`.
@@ -111,6 +114,25 @@ The decoded DTBO values close several of those questions:
   surface is `synaptics_1403_touch`, not Hynitron.
 - the prior `debugfs` attempt was invalid because DLKM images are EROFS. The
   corrected EROFS extraction completed successfully.
+
+The final live closeout also established:
+
+- the live keypad-light platform device is `/sys/devices/platform/keypad_led`,
+  bound to platform driver `keypad-led`, with the exact sysfs attribute
+  `keyled_brightness`. A parallel misc device exists at
+  `/sys/class/misc/keypad_led`. Stock shell SELinux/DAC prevents reading or
+  even fully statting the platform attribute, so the current numeric value is
+  not available from an unprivileged ADB shell.
+- `dumpsys input` still enumerates `ff_key`, `touchPad`, `TitanKey`, and
+  `gpio_key-func`. The earlier all-`not-found` sysfs-name result was a
+  collector/read-permission artifact, not disappearance of the devices.
+- no exact `ff_key` owner was found in vendor-DLKM modules, and the bounded
+  system/odm-DLKM search also produced no attribution. Deeper built-in-kernel
+  and vendor userspace/framework searches are appropriate now that resource
+  constraints are gone.
+- the commented `# key 404 "KEY_FIRST"` in `Generic.kl` is the normal Linux
+  input scan-code namespace and must not be conflated with the vendor Android
+  KeyEvent value observed during keyboard-surface gesture testing.
 
 Stock properties also expose the policy split:
 
@@ -182,8 +204,8 @@ The first keyboard adapter should prove:
 The first static pass substantially narrowed the unknowns. Next resolve:
 
 - producer/consumer role of `ff_key`; it was not found as an exact input-device name in the extracted vendor-DLKM modules and is non-blocking for the first adapter;
-- runtime sysfs path and accepted range/semantics of `keyled_brightness`; the backend itself is now identified;
-- exact stock UI slider-to-`keyled_brightness` mapping, only if matching stock levels is desirable;
+- current/accepted numeric semantics of `/sys/devices/platform/keypad_led/keyled_brightness`; the exact live path is known but stock shell access is denied;
+- exact stock UI slider-to-`keyled_brightness` mapping, if matching stock levels is desirable;
 - whether vendor key 404 is synthesized in kernel/native/framework code.
 
 If any field remains vendor-private after static inspection, record the boundary
