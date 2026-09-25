@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ADB=(adb -s "$TITAN_SERIAL")
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT="$ROOT/artifacts/private/t2-tier2/$STAMP-sable-n0-smoke"
-REPORT="$OUT/REPORT.txt"
+REPORT="$OUT/REPORT-${STAMP}-sable-n0-smoke.txt"
 mkdir -p "$OUT"
 
 if ! "${ADB[@]}" get-state >/dev/null 2>&1; then
