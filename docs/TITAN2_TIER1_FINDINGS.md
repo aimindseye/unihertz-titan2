@@ -105,14 +105,37 @@ shutter candidate from that evidence alone.
 This is sufficient to identify a safe conventional shutter input for Sable
 Camera without depending on the vendor-intercepted Func1/Func2 paths.
 
+### Methodology pivot: static-stack first
+
+The late Section A navigation sweep confirmed that several user-visible keyboard
+behaviors are policy/configuration dependent above the Linux input layer.
+
+Examples from the latest run:
+
+- the tested Back control produced Linux `KEY_BACK` and Android
+  `KEYCODE_BACK`;
+- controls selected by the operator as Home/Recents candidates produced
+  `KEY_APPSELECT` / Android `KEYCODE_APP_SWITCH` rather than proving a
+  distinct hardware Home mapping;
+- keyboard-surface horizontal swipes remained event7 ABS_MT streams while stock
+  framework/IME layers could additionally surface vendor keyCode 404.
+
+Therefore no more exhaustive stock-UX assignment testing is required for Tier 1.
+The next keyboard task is static-stack mapping: sysfs/driver ownership, wakeup
+attributes, static Android input configuration, and vendor-framework ownership.
+Runtime tests should be added only for questions that static inspection cannot
+resolve.
+
 ### Remaining Section A gaps
 
-Before Tier 1 closes, still normalize:
+Before Tier 1 closes, stop broad behavior sweeps and complete the static keyboard stack map:
 
-- Back/Home/Recents/navigation behavior;
-- optional keyboard-originated navigation/scroll behavior if a distinct stock gesture exists.
+- bound drivers / parent buses for TitanKey, touchPad, ff_key and programmable-key paths;
+- wakeup/power attributes that explain screen-off differences;
+- exact `.kl/.kcm/.idc` translation precedence;
+- vendor-framework ownership of synthetic/intercepted behavior.
 
-Camera shutter candidates and keyboard-backlight ownership are characterized.
+Camera shutter candidates and keyboard-backlight ownership are characterized. Additional runtime navigation testing is optional and should be driven by a specific unresolved adapter question.
 
 ## B. Keyboard touch surface / mouse mode
 
