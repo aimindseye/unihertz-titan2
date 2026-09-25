@@ -98,7 +98,7 @@ Before Tier 1 closes, still normalize:
 
 - Back/Home/Recents/navigation behavior;
 - camera-shutter candidates;
-- keyboard backlight control path.
+- keyboard backlight backend/control path (UI owner identified; backend still pending).
 
 ## B. Keyboard touch surface / mouse mode
 
@@ -234,6 +234,35 @@ Deep implementation/storage attribution continues in Section D.
 
 ## D. Stock implementation ownership — current classification
 
+### Keyboard backlight ownership
+
+The stock keyboard-backlight UI is owned by
+`com.agui.settings/.touchpad.KeyboardLEDSettingsActivity`, launched from the
+Settings flow. The observed stock page exposes:
+
+- `Automatic keyboard light` (environment-dependent automatic mode);
+- `Keyboard backlight duration` (observed value: 5 seconds);
+- `Backlight brightness` as a slider.
+
+There is no simple keyboard-backlight on/off control in this page. The first
+ownership helper therefore treated the minimum slider position as the practical
+"off/minimum" endpoint; that test should not be described as a true OFF -> ON
+boolean transition.
+
+The stock package/service evidence strongly identifies `com.agui.settings` as
+the presentation/configuration owner. During the interaction, vendor log output
+showed `AguiUtilsTools: <writeDataToFile>` with changing numeric values,
+suggesting the UI writes through a vendor file-backed control path. The current
+capture did not expose the target path, and no useful standard
+`system/secure/global` Settings diff, `/sys/class/leds` diff, or
+`dumpsys lights` diff was produced.
+
+SystemUI has `MONITOR_KEYBOARD_BACKLIGHT`, but the user-facing configuration
+screen is the vendor `com.agui.settings` activity. A small targeted
+minimum-vs-maximum slider trace is still needed to identify the lower-level
+backend and value range.
+
+
 | Behavior | Current primary classification | Evidence / caveat |
 | --- | --- | --- |
 | base physical keyboard matrix | kernel/input-driver + Android input configuration | TitanKey input device plus .kl/.kcm; ordinary key delivery does not require a vendor UI app |
@@ -246,11 +275,8 @@ Deep implementation/storage attribution continues in Section D.
 | rear touch association | Android input/display framework capability coordinated with SubScreen lifecycle | `sub_touch` follows rear viewport active state |
 | rear notifications | replaceable privileged presentation policy atop platform notification service | per-app allow-list + SubScreen NotificationListenerService |
 | rear brightness | privileged SubScreen presentation/control; exact backend pending | independent behavior; launcher has `CONTROL_DISPLAY_BRIGHTNESS` |
-| keyboard backlight | **pending** | next targeted ownership capture |
+| keyboard backlight | privileged vendor Settings UI + lower-level backend pending | stock `com.agui.settings/.touchpad.KeyboardLEDSettingsActivity` owns the UI; controls are automatic mode, duration and brightness slider rather than a simple on/off toggle |
 | shortcut configuration storage | app/vendor policy; exact storage partly pending | `com.agui.shortcutsettings` identified |
 | notification allow-list storage | app-private/vendor policy likely; exact storage pending | standard Settings diff empty |
 
-The next Section D capture should focus on keyboard-backlight ownership and a
-static package/service/overlay inventory for the known owners. After Section D,
-return to the remaining Section A navigation/backlight acceptance rows before
-closing Tier 1.
+Static package/service/overlay ownership is now substantially captured. The next targeted Section D step is a minimal keyboard-backlight brightness trace (minimum vs maximum) to identify the lower-level backend. After that, return to the remaining Section A navigation/Home/Back/Recents and shutter-candidate acceptance rows before closing Tier 1.
