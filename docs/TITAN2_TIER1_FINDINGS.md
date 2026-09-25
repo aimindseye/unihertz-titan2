@@ -250,17 +250,38 @@ ownership helper therefore treated the minimum slider position as the practical
 boolean transition.
 
 The stock package/service evidence strongly identifies `com.agui.settings` as
-the presentation/configuration owner. During the interaction, vendor log output
-showed `AguiUtilsTools: <writeDataToFile>` with changing numeric values,
-suggesting the UI writes through a vendor file-backed control path. The current
-capture did not expose the target path, and no useful standard
-`system/secure/global` Settings diff, `/sys/class/leds` diff, or
-`dumpsys lights` diff was produced.
+the presentation/configuration owner. A controlled minimum-vs-maximum slider
+trace produced no change in standard `system/secure/global` Settings, readable
+`/sys/class/leds` / `/sys/class/backlight` state, InputManager light state,
+or `dumpsys lights`.
+
+InputManager reports `KbdBacklightController: 0 keyboard backlights`, and the
+AIDL lights service remained unchanged across the brightness transition. This
+means the Titan 2 keyboard illumination is not exposed through Android's normal
+keyboard-backlight controller or the visible standard Lights HAL surface in the
+tested stock build.
+
+Strings from the private stock `AguiSettings.apk` identify the vendor feature
+surface and internal configuration names, including:
+
+- `keyboard_led_auto_switch`;
+- `keyboard_led_brightness`;
+- `KEYBOARD_LED_SWITCH` / `key_keyboard_led_switch`;
+- `KEY_SLIDE_KEYBOARD_LIGHT` / `key_slide_keyboard_light_switch`;
+- `persist.sys.keyboard_light_slide_on`;
+- `keyboard_backlight_same_as_screen`;
+- `keyboard_backlight_scroll_turn_on`;
+- duration resources for 3/5/10/15/30 seconds and always-off behavior.
+
+The same APK identifies `KeyboardLEDSettingsActivity.kt` and
+`res/xml/keyboard_led.xml`. These strings are strong ownership/configuration
+evidence but do not, by themselves, prove which preference store or device node
+is used for the brightness slider.
 
 SystemUI has `MONITOR_KEYBOARD_BACKLIGHT`, but the user-facing configuration
-screen is the vendor `com.agui.settings` activity. A small targeted
-minimum-vs-maximum slider trace is still needed to identify the lower-level
-backend and value range.
+screen and vendor-specific feature policy are owned by `com.agui.settings`.
+Lower-level brightness persistence/control remains vendor-private in current
+evidence and is not required to treat the stock behavior as characterized.
 
 
 | Behavior | Current primary classification | Evidence / caveat |
@@ -275,8 +296,8 @@ backend and value range.
 | rear touch association | Android input/display framework capability coordinated with SubScreen lifecycle | `sub_touch` follows rear viewport active state |
 | rear notifications | replaceable privileged presentation policy atop platform notification service | per-app allow-list + SubScreen NotificationListenerService |
 | rear brightness | privileged SubScreen presentation/control; exact backend pending | independent behavior; launcher has `CONTROL_DISPLAY_BRIGHTNESS` |
-| keyboard backlight | privileged vendor Settings UI + lower-level backend pending | stock `com.agui.settings/.touchpad.KeyboardLEDSettingsActivity` owns the UI; controls are automatic mode, duration and brightness slider rather than a simple on/off toggle |
+| keyboard backlight | privileged vendor Settings policy over vendor-private backend | `com.agui.settings/.touchpad.KeyboardLEDSettingsActivity`; stock resources expose automatic mode, timeout, brightness and slide-to-wake policy; not surfaced through Android KbdBacklightController/Lights HAL in tested build |
 | shortcut configuration storage | app/vendor policy; exact storage partly pending | `com.agui.shortcutsettings` identified |
 | notification allow-list storage | app-private/vendor policy likely; exact storage pending | standard Settings diff empty |
 
-Static package/service/overlay ownership is now substantially captured. The next targeted Section D step is a minimal keyboard-backlight brightness trace (minimum vs maximum) to identify the lower-level backend. After that, return to the remaining Section A navigation/Home/Back/Recents and shutter-candidate acceptance rows before closing Tier 1.
+Static package/service/overlay ownership and keyboard-backlight ownership are now substantially characterized. The lower-level keyboard-light backend remains vendor-private but no longer blocks Tier 1. Return to the remaining Section A navigation/Home/Back/Recents and shutter-candidate acceptance rows before closing Tier 1.
