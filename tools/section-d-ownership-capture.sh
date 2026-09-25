@@ -21,6 +21,7 @@ OUT="$ROOT/artifacts/private/t2-tier1/$STAMP-section-d-ownership"
 mkdir -p "$OUT"
 
 PACKAGES=(
+  com.agui.settings
   com.agui.subdisplay.launcher
   com.agui.shortcutsettings
   com.agui.keyboard
@@ -97,7 +98,7 @@ echo
 echo "Titan 2 Section D — stock implementation ownership"
 echo
 echo "Phase 1 captures known package/service/overlay owners."
-echo "Phase 2 performs one guided keyboard-backlight OFF -> ON comparison."
+echo "Phase 2 performs one guided keyboard-backlight minimum -> higher comparison."
 echo "Only normal stock UI toggles are changed manually."
 echo
 
@@ -108,26 +109,26 @@ capture_leds static
 
 echo
 echo "============================================================"
-echo "KEYBOARD BACKLIGHT — OFF baseline"
+echo "KEYBOARD BACKLIGHT — minimum baseline"
 echo
-echo "Use the normal stock keyboard-backlight control/QS tile and set it OFF."
-echo "Do not change unrelated settings."
-echo "When the physical keyboard backlight is definitely OFF, press ENTER."
+echo "Open the stock Keyboard backlight page, turn Automatic keyboard light OFF,"
+echo "and move Backlight brightness to MINIMUM. Do not change unrelated settings."
+echo "When the slider is at minimum, press ENTER."
 read -r
-snapshot_backlight backlight-off
+snapshot_backlight backlight-min
 
 "${ADB[@]}" shell logcat -c >/dev/null 2>&1 || true
 
 echo
 echo "============================================================"
-echo "KEYBOARD BACKLIGHT — toggle ON"
+echo "KEYBOARD BACKLIGHT — higher brightness"
 echo
-echo "Now use the same stock control/QS tile to turn keyboard backlight ON."
-echo "Wait until the keyboard is visibly lit, then press ENTER."
+echo "Move the same Backlight brightness slider to a clearly higher value."
+echo "Wait until the keyboard brightness changes, then press ENTER."
 read -r
 
 "${ADB[@]}" shell logcat -d -v threadtime > "$OUT/backlight-on-logcat.txt" 2>&1 || true
-snapshot_backlight backlight-on
+snapshot_backlight backlight-high
 
 echo
 echo "For cleanup, return the keyboard backlight to your preferred state."
@@ -156,15 +157,15 @@ done
 
 echo
 echo "Keyboard-backlight candidate setting diff:"
-diff -u "$OUT/backlight-off-settings-all.txt" "$OUT/backlight-on-settings-all.txt"   | grep -Ei '^[-+].*(keyboard|key|led|backlight|light)'   | grep -Ev '^---|^\+\+\+' || true
+diff -u "$OUT/backlight-min-settings-all.txt" "$OUT/backlight-high-settings-all.txt"   | grep -Ei '^[-+].*(keyboard|key|led|backlight|light)'   | grep -Ev '^---|^\+\+\+' || true
 
 echo
 echo "Keyboard-backlight LED/sysfs diff:"
-diff -u "$OUT/backlight-off-leds.txt" "$OUT/backlight-on-leds.txt" || true
+diff -u "$OUT/backlight-min-leds.txt" "$OUT/backlight-high-leds.txt" || true
 
 echo
 echo "Keyboard-backlight framework/light-service diff:"
-diff -u "$OUT/backlight-off-dumpsys-lights.txt" "$OUT/backlight-on-dumpsys-lights.txt" || true
+diff -u "$OUT/backlight-min-dumpsys-lights.txt" "$OUT/backlight-high-dumpsys-lights.txt" || true
 
 echo
 echo "Keyboard-backlight log summary:"
