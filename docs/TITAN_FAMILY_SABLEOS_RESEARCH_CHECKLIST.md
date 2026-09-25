@@ -1,6 +1,6 @@
 # Titan 2 family research checklist for SableOS
 
-Status: **active parallel research reference**
+Status: **active — Titan 2 Tier 1 A–D complete; Tier 2, first-Sable validation, and Titan 2 Elite work remain**
 
 Date: 2026-09-24
 
@@ -12,6 +12,48 @@ contracts.
 
 Titan 2 and Titan 2 Elite are always independent evidence targets. Do not copy a
 PASS from one device to the other.
+
+
+## Progress snapshot — Titan 2 (2026-09-25)
+
+Status labels in this table apply only to the **Titan 2** retail unit and stock
+V01.00.13 evidence. Titan 2 Elite remains an independent target.
+
+| Checklist area | Titan 2 status | Current boundary |
+| --- | --- | --- |
+| Tier 1 A. Physical keyboard event pipeline | **COMPLETE** | Stable Linux/Android mapping, driver ownership, side-key paths, wake boundary, keyboard illumination backend, `ff_key` fingerprint ownership, and native vendor key-404 synthesis are mapped sufficiently for the first Sable adapter. Exact stock-only preference/predicate parity is optional. |
+| Tier 1 B. Keyboard touch surface / mouse mode | **COMPLETE** | `touchPad` is a separate ABS_MT device; stock Mouse Mode is Android Mouse Keys layered above it. |
+| Tier 1 C. Display and input topology | **COMPLETE** | Primary and rear SubScreen topology, touch association, wake/lifecycle, brightness independence, notification presentation, security/display-group behavior, and rotation are characterized. Runtime display IDs remain explicitly non-stable. |
+| Tier 1 D. Stock keyboard/SubScreen ownership | **COMPLETE** | Kernel/vendor-framework/replaceable-policy boundaries are mapped, including keyboard light, programmable keys, Mouse Keys, SubScreen launcher/notifications, Kika policy, and vendor key-404 consumers. |
+| Titan 2 Elite Tier 1 arrival baseline | **NOT STARTED / WAITING FOR HARDWARE** | Must be captured independently before mutation; do not copy Titan 2 PASS results. |
+| Tier 2 E. Restore and deployment contract | **PARTIAL — stock/restore side substantially complete** | Stock firmware equivalence, restore-critical images, partition/LP topology, fastbootd, active-slot/AVB feasibility and restore sources are characterized. Still required: first bounded Sable deployment, final artifact choice from experiment, and explicit userdata-wipe determination. |
+| Tier 2 F. VINTF / vendor compatibility | **PARTIAL** | Stock Treble/vendor/VNDK/API/ABI baseline and compatibility feasibility are known. Still required: normalized first-Sable comparison of HAL/service availability against stock. |
+| Tier 2 G. AVB / rollback / security | **PARTIAL** | Bootloader/AVB feasibility work is complete enough for bring-up and stock vbmeta artifacts are captured. Still required for the checklist: normalized full security-capability inventory (KeyMint/Gatekeeper/StrongBox/biometric strength and any remaining rollback/key-rotation details) for a future security claim. |
+| Tier 2 H. Camera | **PARTIAL — normal-app path complete** | Ordinary-app topology/probe and Sable Camera main/front/JPEG/DNG work are complete. Remaining controlled phase: SYSTEM_CAMERA-capable hidden tele/logical-camera access and negative third-party discovery tests if that capability is adopted. |
+| Tier 2 I. Telephony / IMS | **NOT STARTED as checklist baseline** | SIM/carrier-specific data, voice, SMS/MMS, IMS, VoLTE/VoWiFi, APN, dual-SIM and call-audio baseline still required. |
+| Tier 2 J. Audio | **NOT STARTED as checklist baseline** | Earpiece, speaker, microphones, Bluetooth, USB audio, FM, haptics and call/camera routing baseline still required. |
+| Tier 2 K. Fingerprint, sensors, NFC and GNSS | **PARTIAL / INCIDENTAL ONLY** | Fingerprint kernel/input ownership has incidental evidence from keyboard work. Full behavior + HAL/service inventory for fingerprint, sensors, NFC, GNSS, IR and USB OTG remains. |
+| Tier 2 L. Power / thermal / suspend | **PARTIAL** | Keyboard/SubScreen wake and screen-off key behavior are characterized. Charging/health policy, broad suspend/deep-idle, thermal zones/throttling and battery/Health HAL baseline remain. |
+| Acceptance matrix | **PARTIAL** | Stock evidence can now be filled for boot feasibility, display/touch, keyboard/pointer/IME, SubScreen and normal-app camera. Every **First Sable N0** cell remains unproven until a Sable artifact is actually deployed. |
+
+### Current research stop boundary
+
+For Titan 2, do **not** continue broad keyboard/SubScreen reverse engineering before
+the first Sable adapter/N0 experiment. Tier 1 answered the safety and ownership
+questions it was intended to answer.
+
+The next highest-value work is:
+
+1. turn the completed keyboard/display contracts into the Titan 2 Sable device
+   adapter;
+2. finish the explicit Tier 2 E first-deployment contract and perform the first
+   bounded Sable N0 experiment;
+3. use that boot to populate the first-Sable side of the acceptance matrix and
+   drive only evidence-based follow-up;
+4. in parallel, capture stock telephony/audio/sensors/power baselines before
+   those subsystems are needed for N0 parity;
+5. keep Titan 2 Elite entirely pending until the physical unit can be qualified
+   independently.
 
 ## Evidence discipline
 
