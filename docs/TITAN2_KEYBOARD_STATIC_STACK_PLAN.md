@@ -155,3 +155,27 @@ three layers clearly separated:
 The contract should avoid transient event numbers, transient display IDs, and
 stock-app implementation details unless they are the only owner of a hardware
 capability.
+
+## Follow-up after the first static map
+
+The first static capture identified strong kernel-module candidates:
+
+- `TitanKey` at I2C `6-0058` -> `aw9523_key` candidate;
+- `touchPad` at I2C `2-0020` -> `hynitron_touchpad` candidate;
+- keyboard illumination -> loaded `keypad_led` using MediaTek PWM;
+- PMIC side-key path -> loaded `mtk_pmic_keys`;
+- display-state integration -> `mtk_disp_notify` referenced by keyboard/touch/light modules.
+
+Resolve the remaining exact bindings and exported control nodes with:
+
+```bash
+export TITAN_SERIAL="$Titan2"
+bash tools/t2-keyboard-driver-inspect.sh
+```
+
+This follow-up remains read-only. It inspects exact bus-driver symlinks, parent
+power/wakeup state, module metadata/strings, likely keyboard-light sysfs nodes,
+and exposed device-tree candidates. It pulls only the small already-loaded
+keyboard-related kernel modules into the existing gitignored private artifact
+tree for host-side metadata inspection.
+
