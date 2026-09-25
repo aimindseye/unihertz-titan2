@@ -11,7 +11,7 @@ IMG="$(readlink -f "$IMG")"
 
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT="$ROOT/artifacts/private/t2-tier2/$STAMP-n0-artifact-preflight"
-REPORT="$OUT/REPORT.txt"
+REPORT="$OUT/REPORT-${STAMP}-n0-artifact-preflight.txt"
 mkdir -p "$OUT"
 
 sha="$(sha256sum "$IMG" | awk '{print $1}')"
@@ -86,7 +86,7 @@ fi
 
 (
   cd "$OUT"
-  sha256sum REPORT.txt > SHA256SUMS
+  sha256sum "$(basename "$REPORT")" > SHA256SUMS
 )
 
 echo "N0 artifact preflight written:"
