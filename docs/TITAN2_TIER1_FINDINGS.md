@@ -1,6 +1,6 @@
 # Titan 2 Tier 1 SableOS findings
 
-Status: **active — Sections B/C core behavior characterized; Section D ownership in progress**
+Status: **Tier 1 Sections A–D complete for the Titan 2 stock baseline; remaining items are optional stock-UX parity details**
 
 Stock baseline used for these findings:
 
@@ -28,7 +28,7 @@ paths beyond generic locations.
 | rear SubScreen touch | `sub_touch` / event4 | confirmed |
 | Func1 upper red side key | PMIC key path / scan 249 | confirmed |
 | Func2 lower red side key | gpio function-key path / scan 250 | confirmed |
-| synthetic navigation helper | `ff_key` / event8 | present; semantics only partly characterized |
+| fingerprint gesture helper | `ff_key` / event8 | attributed to loaded FocalTech fingerprint module; not part of the physical keyboard contract |
 
 `TitanKey` uses `/system/usr/keylayout/TitanKey.kl` and
 `/system/usr/keychars/TitanKey.kcm`. Generic programmable mappings include
@@ -126,16 +126,34 @@ attributes, static Android input configuration, and vendor-framework ownership.
 Runtime tests should be added only for questions that static inspection cannot
 resolve.
 
-### Remaining Section A gaps
+### Static-stack closure
 
-Before Tier 1 closes, stop broad behavior sweeps and complete the static keyboard stack map:
+The static keyboard-stack pass closes the implementation-facing Section A
+questions needed for the first Sable adapter:
 
-- bound drivers / parent buses for TitanKey, touchPad, ff_key and programmable-key paths;
-- wakeup/power attributes that explain screen-off differences;
-- exact `.kl/.kcm/.idc` translation precedence;
-- vendor-framework ownership of synthetic/intercepted behavior.
+- `TitanKey` is I2C `6-0058`, bound to `aw9523_key`; DT configures matrix
+  mode and explicitly disables the stock Space wake path with
+  `wake_up_enable=0`;
+- `touchPad` is I2C `2-0020`, bound to `synaptics_dsx_pad` /
+  `synaptics_1403_touch`, with authoritative DT `reg=0x20`;
+- Func1 is the PMIC scan-249 path; Func2 runtime events are produced by
+  `gpio_key.ko` as `gpio_key-func`, while a PMIC keycode-250 capability
+  also exists in DT and must not be confused with the observed Func2 source;
+- `ff_key` is attributable to the loaded FocalTech fingerprint module
+  `focaltech_fp.ko` and is a fingerprint-gesture helper rather than physical
+  keyboard hardware;
+- keyboard illumination is the dedicated `agold,keypad-led` /
+  `keypad_led.ko` PWM path, not AW9523 LED mode and not Android's generic
+  keyboard-backlight controller;
+- native `android::KeyboardInputMapper::aguiSetProgrammableKey(int)`
+  synthesizes vendor Android key code 404. `KeyboardInputMapper::processKey`
+  recognizes 404, `InputDispatcher` contains a dedicated downstream 404 path,
+  and Java policy (`PhoneWindowManager` / `AguiKeyboardShortcut`) consumes
+  the already-synthesized event.
 
-Camera shutter candidates and keyboard-backlight ownership are characterized. Additional runtime navigation testing is optional and should be driven by a specific unresolved adapter question.
+**Section A adapter contract: closed.** Additional runtime key testing is
+optional and should be driven only by an implementation failure or a deliberate
+stock-compatibility goal.
 
 ## B. Keyboard touch surface / mouse mode
 
@@ -317,8 +335,7 @@ is used for the brightness slider.
 
 SystemUI has `MONITOR_KEYBOARD_BACKLIGHT`, but the user-facing configuration
 screen and vendor-specific feature policy are owned by `com.agui.settings`.
-Lower-level brightness persistence/control remains vendor-private in current
-evidence and is not required to treat the stock behavior as characterized.
+Lower-level brightness control is now attributed to the dedicated keypad PWM backend. The live node is `/sys/devices/platform/keypad_led/keyled_brightness`; vendor init sets mode `0666` and owner `system`, SELinux labels it `sysfs_agold`, and `system_server` has read/write access. Stock `services.jar` contains `com.agui.server.functional.KeyboardLightController`, the exact sysfs path, and `agui_keyboard_background_light`; live logs confirm that `AguiFunctionalService` starts this controller. This closes the stock runtime writer/policy boundary.
 
 
 | Behavior | Current primary classification | Evidence / caveat |
@@ -333,8 +350,10 @@ evidence and is not required to treat the stock behavior as characterized.
 | rear touch association | Android input/display framework capability coordinated with SubScreen lifecycle | `sub_touch` follows rear viewport active state |
 | rear notifications | replaceable privileged presentation policy atop platform notification service | per-app allow-list + SubScreen NotificationListenerService |
 | rear brightness | privileged SubScreen presentation/control; exact backend pending | independent behavior; launcher has `CONTROL_DISPLAY_BRIGHTNESS` |
-| keyboard backlight | privileged vendor Settings policy over vendor-private backend | `com.agui.settings/.touchpad.KeyboardLEDSettingsActivity`; stock resources expose automatic mode, timeout, brightness and slide-to-wake policy; not surfaced through Android KbdBacklightController/Lights HAL in tested build |
+| keyboard backlight | dedicated kernel PWM backend + AGUI system-server policy + replaceable Settings UI | `keypad_led.ko` / `keyled_brightness` is the hardware path; `KeyboardLightController` in system_server is the stock runtime writer/policy owner; Settings exposes automatic mode, timeout, brightness and slide policy; generic Android KbdBacklightController/Lights HAL is not used |
 | shortcut configuration storage | app/vendor policy; exact storage partly pending | `com.agui.shortcutsettings` identified |
 | notification allow-list storage | app-private/vendor policy likely; exact storage pending | standard Settings diff empty |
 
-Static package/service/overlay ownership and keyboard-backlight ownership are now substantially characterized. The lower-level keyboard-light backend remains vendor-private but no longer blocks Tier 1. Return to the remaining Section A navigation/Home/Back/Recents and shutter-candidate acceptance rows before closing Tier 1.
+Static package/service/overlay ownership, keyboard-light ownership, synthetic key 404 generation, fingerprint-gesture helper ownership, and the stable keyboard/touch/side-key driver bindings are now characterized sufficiently for the first Sable adapter. Exact stock preference persistence, instantaneous stock keyboard-light value, and exact vendor string predicates for the 404 compatibility path are optional parity details, not Tier 1 blockers.
+
+**Tier 1 Sections A–D: closed for the Titan 2 stock V01.00.13 baseline.**
