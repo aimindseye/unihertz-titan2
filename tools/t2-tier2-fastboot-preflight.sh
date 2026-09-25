@@ -33,7 +33,11 @@ value() {
 host_product="$(value product || true)"
 is_userspace="$(value is-userspace || true)"
 expected_userspace="no"
-[[ "$MODE" == "fastbootd" ]] && expected_userspace="yes"
+expected_product="g71v78c2k_dfl_tee"
+if [[ "$MODE" == "fastbootd" ]]; then
+  expected_userspace="yes"
+  expected_product="Titan_2"
+fi
 
 {
   echo "# fastboot getvar all"
@@ -73,6 +77,7 @@ status=0
   echo "timestamp_utc=$STAMP"
   echo "requested_mode=$MODE"
   echo "product=$host_product"
+  echo "expected_product=$expected_product"
   echo "is_userspace=$is_userspace"
   echo "expected_is_userspace=$expected_userspace"
   echo "current_slot=$(value current-slot || true)"
@@ -82,8 +87,8 @@ status=0
   echo "super_size=$(value partition-size:super || true)"
   echo
 
-  if [[ "$host_product" != "g71v78c2k_dfl_tee" ]]; then
-    echo "FAIL product mismatch"
+  if [[ "$host_product" != "$expected_product" ]]; then
+    echo "FAIL product mismatch: expected $expected_product"
     status=1
   else
     echo "PASS product identity"
