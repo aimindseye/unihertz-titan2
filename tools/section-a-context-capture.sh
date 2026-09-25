@@ -8,10 +8,11 @@ MODE="${1:-}"
 case "$MODE" in
   lockscreen|screenoff) ;;
   *)
-    echo "Usage: TITAN_SERIAL=<serial> $0 lockscreen|screenoff" >&2
+    echo "Usage: TITAN_SERIAL=<serial> $0 lockscreen|screenoff [q|space|enter|func1|func2 ...]" >&2
     exit 2
     ;;
 esac
+shift || true
 
 ADB=(adb -s "$TITAN_SERIAL")
 state="$("${ADB[@]}" get-state 2>/dev/null || true)"
@@ -31,6 +32,34 @@ command -v timeout >/dev/null 2>&1 || {
   exit 1
 }
 
+all_labels=(q space enter func1 func2)
+if (( $# > 0 )); then
+  labels=("$@")
+else
+  labels=("${all_labels[@]}")
+fi
+
+for label in "${labels[@]}"; do
+  case "$label" in
+    q|space|enter|func1|func2) ;;
+    *)
+      echo "error: unknown key label '$label'" >&2
+      echo "valid labels: q space enter func1 func2" >&2
+      exit 2
+      ;;
+  esac
+done
+
+instruction_for() {
+  case "$1" in
+    q) echo "press Q once" ;;
+    space) echo "press Space once" ;;
+    enter) echo "press Enter once" ;;
+    func1) echo "press the UPPER red side button (Func1) once" ;;
+    func2) echo "press the LOWER red side button (Func2) once" ;;
+  esac
+}
+
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT="$ROOT/artifacts/private/t2-tier1/$STAMP-section-a-$MODE"
 mkdir -p "$OUT"
@@ -40,40 +69,41 @@ capture_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 device_family=Titan 2
 mode=$MODE
 operation=guided observational key-context capture
+selected_keys=${labels[*]}
 EOF
-
-labels=(q space enter func1 func2)
-instructions=(
-  "press Q once"
-  "press Space once"
-  "press Enter once"
-  "press the UPPER red side button (Func1) once"
-  "press the LOWER red side button (Func2) once"
-)
 
 echo
 echo "Titan 2 Section A guided context capture: $MODE"
+echo "Selected keys: ${labels[*]}"
 echo "No repeated shell commands are needed."
 echo
 
-for i in "${!labels[@]}"; do
-  label="${labels[$i]}"
-  instruction="${instructions[$i]}"
+count=0
+for label in "${labels[@]}"; do
+  count=$((count + 1))
+  instruction="$(instruction_for "$label")"
 
   echo "------------------------------------------------------------"
-  echo "Test $((i + 1)) of ${#labels[@]}: $label"
+  echo "Test $count of ${#labels[@]}: $label"
 
   if [[ "$MODE" == "lockscreen" ]]; then
-    echo "Put the phone on the visible lockscreen and DO NOT unlock it."
+    echo "BEFORE starting capture:"
+    echo "  1. Wake the phone with Power."
+    echo "  2. Confirm the credential/PIN lockscreen is visible."
+    echo "  3. Do NOT unlock it."
+    echo "  4. Do NOT touch Power during the 6-second capture."
   else
-    echo "Turn the main screen OFF and leave the phone locked."
+    echo "BEFORE starting capture:"
+    echo "  Turn the main screen OFF and leave the phone locked."
+    echo "  Do not wake it before the capture starts."
   fi
 
-  echo "When ready, press ENTER here."
+  echo "When the phone is in that state, press ENTER here."
   read -r
 
   "${ADB[@]}" shell cat /proc/uptime > "$OUT/$label-uptime-before.txt" 2>&1 || true
   "${ADB[@]}" shell dumpsys power > "$OUT/$label-power-before.txt" 2>&1 || true
+  "${ADB[@]}" shell dumpsys window policy > "$OUT/$label-window-policy-before.txt" 2>&1 || true
 
   echo
   echo "CAPTURING FOR 6 SECONDS: $instruction"
