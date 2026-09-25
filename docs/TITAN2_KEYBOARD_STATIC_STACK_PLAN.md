@@ -179,3 +179,35 @@ and exposed device-tree candidates. It pulls only the small already-loaded
 keyboard-related kernel modules into the existing gitignored private artifact
 tree for host-side metadata inspection.
 
+
+## OTA / firmware pivot
+
+The live-device driver mapping is now sufficient to identify the main keyboard
+owners:
+
+- `TitanKey` -> I2C driver `TitanKey` -> kernel module `aw9523_key`;
+- `touchPad` -> I2C driver `synaptics_dsx_pad` -> kernel module
+  `synaptics_1403_touch`;
+- `mtk-pmic-keys` -> kernel module `mtk_pmic_keys`;
+- standard `gpio-keys` appears built-in or does not expose a module symlink.
+
+The remaining questions are better answered from the stock OTA / extracted
+firmware than from more live UX testing. In particular, firmware images can
+expose:
+
+- full DT/DTBO property values;
+- module `.modinfo`, aliases and literal input-device names;
+- vendor framework/APK/JAR strings for `ff_key`, `gpio_key-func` and key 404;
+- the keyboard-light backend and its DT/PWM bindings;
+- static `.kl/.kcm/.idc` copies in partition images.
+
+Use:
+
+```bash
+bash tools/t2-ota-keyboard-inspect.sh /path/to/titan2-ota-or-extracted-firmware
+```
+
+Raw OTA images, payloads, extracted partitions and module binaries stay only in
+the existing gitignored private artifact tree on `ai-g732`. Commit only
+normalized conclusions.
+
