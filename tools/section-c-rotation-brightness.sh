@@ -152,7 +152,7 @@ for f in "$OUT"/*-dumpsys-display.txt "$OUT"/*-window-displays.txt "$OUT"/*-dump
   [[ -f "$f" ]] || continue
   echo
   echo "===== $(basename "$f") ====="
-  grep -nEi 'displayId=2|local:4627039422300187651|rotation|orientation|Viewport INTERNAL|logicalFrame|physicalFrame' "$f" | head -n 140 || true
+  grep -nEi 'sub_touch|AssociatedDisplay|rotation|orientation|Viewport INTERNAL|port=3|logicalFrame|physicalFrame|uniqueId' "$f" | head -n 160 || true
 done
 
 echo
