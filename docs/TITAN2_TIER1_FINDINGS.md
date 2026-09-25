@@ -92,13 +92,27 @@ With the displays off:
 The reason the keyboard matrix becomes quiet while screen-off is not yet
 attributed to a specific driver/power-policy mechanism.
 
+### Stock Camera shutter candidates
+
+In the stock MediaTek Camera app, both Volume Up and Volume Down are confirmed
+camera-compatible shutter candidates. Their isolated test logs entered the real
+capture pipeline, including single-YUV-to-JPEG capture requests.
+
+Space reached stock Camera as ordinary `KEYCODE_SPACE`; the shared excerpt did
+not show a corresponding capture sequence, so Space is not classified as a
+shutter candidate from that evidence alone.
+
+This is sufficient to identify a safe conventional shutter input for Sable
+Camera without depending on the vendor-intercepted Func1/Func2 paths.
+
 ### Remaining Section A gaps
 
 Before Tier 1 closes, still normalize:
 
 - Back/Home/Recents/navigation behavior;
-- camera-shutter candidates;
-- keyboard backlight backend/control path (UI owner identified; backend still pending).
+- optional keyboard-originated navigation/scroll behavior if a distinct stock gesture exists.
+
+Camera shutter candidates and keyboard-backlight ownership are characterized.
 
 ## B. Keyboard touch surface / mouse mode
 
