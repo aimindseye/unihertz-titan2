@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 EQ_ROOT="${T2_EQ_ROOT:-/srv/data/sable-build/titan2/artifacts/stock-firmware/unihertz-device-fota-20260922/inspection/bit-equivalence}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT="$ROOT/artifacts/private/t2-tier2/$STAMP-restore-verify"
-REPORT="$OUT/REPORT.txt"
+REPORT="$OUT/REPORT-${STAMP}-restore-verify.txt"
 HASHES="$OUT/RESTORE_SHA256SUMS.txt"
 mkdir -p "$OUT"
 : > "$HASHES"
@@ -103,7 +103,7 @@ missing=0
 sort -u "$HASHES" -o "$HASHES" 2>/dev/null || true
 (
   cd "$OUT"
-  sha256sum REPORT.txt RESTORE_SHA256SUMS.txt > SHA256SUMS
+  sha256sum "$(basename "$REPORT")" RESTORE_SHA256SUMS.txt > SHA256SUMS
 )
 
 echo "Restore verification written:"
