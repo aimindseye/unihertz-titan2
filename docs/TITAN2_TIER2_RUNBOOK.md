@@ -134,7 +134,7 @@ bash tools/t2-tier2-fastboot-preflight.sh bootloader
 
 Required pass conditions:
 
-- product = `g71v78c2k_dfl_tee`;
+- product = `g71v78c2k_dfl_tee` in bootloader fastboot;
 - `is-userspace=no`;
 - bootloader reports unlocked;
 - no active snapshot update.
@@ -157,6 +157,10 @@ bash tools/t2-tier2-fastboot-preflight.sh fastbootd
 
 This records `super`, active slot, snapshot state, logical partition sizes and
 logical-partition flags.
+
+Fastboot product identity is mode-specific on the tested Titan 2: bootloader
+fastboot reports `g71v78c2k_dfl_tee`, while fastbootd reports `Titan_2`. The
+preflight script validates the appropriate identity for each mode.
 
 **Gate E2:** fastbootd preflight PASS.
 
