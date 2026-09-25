@@ -9,6 +9,8 @@ adapters, keyboard-first UI and N0 acceptance, use:
 - [Camera research](docs/CAMERA_RESEARCH.md)
 - [Physical-keyboard app research](docs/KEYBOARD_APP_RESEARCH.md)
 - [SableOS bring-up contract](docs/SABLEOS_BRINGUP_CONTRACT.md)
+- [Titan 2 Tier 2 / first Sable N0 runbook](docs/TITAN2_TIER2_RUNBOOK.md)
+- [Titan 2 N0 acceptance matrix](docs/TITAN2_N0_ACCEPTANCE_MATRIX.md)
 
 The checklist prioritizes input-event mapping, display/input topology, stock
 keyboard/SubScreen ownership and an independent Titan 2 Elite factory baseline
@@ -19,7 +21,7 @@ Bounded device research for a future SableOS Titan 2 bring-up, plus focused appl
 
 ## Status
 
-**Core Titan 2 boot/firmware research closed on 2026-09-22. SableOS bring-up is intentionally deferred until SableOS Release 9 validation on the Pixel 7 is complete.**
+**Core Titan 2 boot/firmware research is closed, Tier 1 keyboard/display ownership is complete, and SableOS Tier 2 / first-N0 preflight is now active. Pixel 7 Release 9 is frozen as the accepted touch-first reference.**
 
 ```text
 T2-R0  Factory baseline                         CLOSED
@@ -27,14 +29,17 @@ T2-R1  Firmware + partition + recovery closure CLOSED
 T2-R2  Bootloader / AVB / GSI feasibility      CLOSED
 T2-R3  SableOS feasibility decision            GO / CLOSED
 
-STOP BROAD DEVICE RESEARCH
+T2-R4  Tier 1 keyboard/display/ownership             CLOSED
+T2-B0  Tier 2 restore/VINTF/security/N0 preflight    ACTIVE
 
-Parallel work allowed:
-  focused camera-app research
-  focused physical-keyboard app research
+DO NOT REOPEN BROAD TIER 1 REVERSE ENGINEERING
 
-OS bring-up resumes after:
-  SableOS 9 validation on Pixel 7
+Active path:
+  verify restore + stock runtime baseline
+  -> capture bootloader/fastbootd state
+  -> preflight exact Sable system artifact
+  -> review AVB/LP/userdata plan
+  -> first bounded Sable N0 flash
 ```
 
 No SableOS image has been flashed to the Titan 2 yet.
@@ -129,7 +134,7 @@ Firmware/image corpora are maintained separately on `ai-g732` and are not commit
 
 ## Near-term plan
 
-The boot/firmware track stays parked. Application research can continue without changing the Titan 2 system image.
+Tier 1 research is parked. The active OS track is Tier 2 / first-N0 preflight; no non-stock image is written until the exact Sable artifact, AVB action, LP sizing and userdata policy have been reviewed.
 
 ```text
 camera:
