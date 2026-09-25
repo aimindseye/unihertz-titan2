@@ -233,6 +233,20 @@ Characterize, without assuming a display ID:
 
 ## Phase 6 — ownership classification
 
+Start with the normalized findings in `docs/TITAN2_TIER1_FINDINGS.md`, then run
+the ownership helper:
+
+```bash
+export TITAN_SERIAL="$Titan2"
+bash tools/section-d-ownership-capture.sh
+```
+
+The helper captures static package/service/overlay ownership for the known
+keyboard/SubScreen candidates and then guides one keyboard-backlight OFF -> ON
+comparison. The backlight step uses only the stock UI/QS control and captures
+settings, lights/sysfs state and logcat around the transition.
+
+
 Use the baseline package/service/overlay evidence plus targeted package dumps.
 
 For every candidate owner, capture only after its package/service name is known:
