@@ -88,3 +88,31 @@ bash tools/section-a-context-capture.sh screenoff
 
 That helper presents one instruction at a time and handles all capture filenames
 and timing automatically.
+
+
+## Local notification source for Section C
+
+The debug Input Probe can also post a conventional app-owned notification for
+rear-SubScreen notification-policy testing. The installer grants
+`POST_NOTIFICATIONS` to the research app.
+
+Post:
+
+```bash
+adb -s "$TITAN_SERIAL" shell am broadcast \
+  -n org.sableos.research.inputprobe/.ResearchNotificationReceiver \
+  -a org.sableos.research.inputprobe.POST_TEST_NOTIFICATION \
+  --es phase manual
+```
+
+Cancel:
+
+```bash
+adb -s "$TITAN_SERIAL" shell am broadcast \
+  -n org.sableos.research.inputprobe/.ResearchNotificationReceiver \
+  -a org.sableos.research.inputprobe.CANCEL_TEST_NOTIFICATION
+```
+
+Use `tools/section-c-rear-notifications.sh` for the controlled BLOCKED-vs-ALLOWED
+SubScreen app-allow-list comparison. The overall rear-notification feature stays
+enabled while only Input Probe's per-app allow entry changes.
