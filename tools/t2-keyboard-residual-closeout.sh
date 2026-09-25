@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 : "${TITAN_SERIAL:?Set TITAN_SERIAL to the Titan 2 ADB serial}"
 ADB=(adb -s "$TITAN_SERIAL")
 
-model="$("${ADB[@]}" shell getprop ro.product.model 2>/dev/null | tr -d '\r')"
+state="$("${ADB[@]}" get-state 2>/dev/null || true)"
+[[ "$state" == "device" ]] || { echo "error: selected Titan ADB target is not ready (state=${state:-none})" >&2; exit 1; }
+model="$("${ADB[@]}" shell getprop ro.product.model 2>/dev/null | tr -d '\r' || true)"
 [[ "$model" == "Titan 2" ]] || { echo "error: selected device is not Titan 2 (model=$model)" >&2; exit 1; }
 
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -38,7 +40,7 @@ adbsh() {
     [[ "$found" -eq 1 ]] || echo "not-found"
     echo
   done
-} > "$OUT/live-input-ownership.txt" 2>&1
+} > "$OUT/live-input-ownership.txt" 2>&1 || true
 
 # The ff_key stanza plus targeted live kernel/module clues.
 {
@@ -62,18 +64,18 @@ adbsh() {
     adbsh "echo realpath=\$(readlink -f $dev);       for n in of_node firmware_node; do         if [ -e $dev/\$n ]; then echo \$n=\$(readlink -f $dev/\$n);           p=\$(readlink -f $dev/\$n); ls -la \$p 2>/dev/null;           for q in compatible reg status name wakeup-source; do             [ -e \$p/\$q ] || continue; echo --\$q--;             od -An -tx1 \$p/\$q 2>/dev/null; strings \$p/\$q 2>/dev/null;           done; fi; done"
     echo
   done
-} > "$OUT/live-dt-origin.txt" 2>&1
+} > "$OUT/live-dt-origin.txt" 2>&1 || true
 
 # Locate the live keypad LED sysfs control and read it only.
 {
   echo "===== keyled_brightness nodes ====="
-  adbsh "find /sys -xdev -name keyled_brightness -print 2>/dev/null" 2>/dev/null | tr -d '\r' | while IFS= read -r node; do
+  (adbsh "find /sys -xdev -name keyled_brightness -print 2>/dev/null" 2>/dev/null || true) | tr -d '\r' | while IFS= read -r node; do
     [[ -n "$node" ]] || continue
     echo "node=$node"
     adbsh "ls -l '$node'; echo value=\$(cat '$node' 2>/dev/null);       p=\$(dirname '$node'); echo parent=\$(readlink -f \$p);       [ -L \$p/driver ] && echo driver=\$(readlink -f \$p/driver);       [ -r \$p/uevent ] && { echo uevent:; cat \$p/uevent; };       echo siblings:; ls -la \$p"
     echo
   done
-} > "$OUT/keyled-live.txt" 2>&1
+} > "$OUT/keyled-live.txt" 2>&1 || true
 
 # Small Android input configuration dirs only.
 adbsh "for d in /system/usr/keylayout /vendor/usr/keylayout /product/usr/keylayout /system_ext/usr/keylayout; do   [ -d \$d ] || continue; echo ===== \$d =====; grep -RniE '(^|[[:space:]])404([[:space:]]|$)|ff_key|gpio_key-func|AGUI' \$d 2>/dev/null || true; done"   > "$OUT/keylayout-404-ff.txt" 2>&1 || true
@@ -115,7 +117,7 @@ MODROOT="$(ls -1dt "$ROOT"/artifacts/private/t2-tier1/*-keyboard-dtbo-erofs/vend
       echo
     done
   fi
-} > "$OUT/module-residuals.txt" 2>&1
+} > "$OUT/module-residuals.txt" 2>&1 || true
 
 # Pull only the known keyboard-policy APKs and inspect their DEX/string constants.
 packages=(
@@ -156,12 +158,14 @@ done
     done < <(unzip -Z1 "$apk" 2>/dev/null | grep -E '^classes([0-9]+)?\.dex$' || true)
     echo
   done
-} > "$OUT/apk-residuals.txt" 2>&1
+} > "$OUT/apk-residuals.txt" 2>&1 || true
 
 (
   cd "$OUT"
   find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
-)
+) || true
+
+echo "collector_status=complete" > "$OUT/COLLECTOR_STATUS.txt"
 
 echo
 echo "Keyboard residual closeout complete:"
