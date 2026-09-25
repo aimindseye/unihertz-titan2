@@ -4,7 +4,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 : "${TITAN_SERIAL:?Set TITAN_SERIAL to the Titan 2 ADB serial}"
 ADB=(adb -s "$TITAN_SERIAL")
-EQ="${1:-/srv/data/sable-build/artifacts/titan2/stock-firmware/unihertz-device-fota-20260922/inspection/bit-equivalence}"
+EQ="${1:-/srv/data/sable-build/titan2/artifacts/stock-firmware/unihertz-device-fota-20260922/inspection/bit-equivalence}"
 state="$("${ADB[@]}" get-state 2>/dev/null || true)"
 [[ "$state" == "device" ]] || { echo "error: Titan ADB target not ready (state=${state:-none})" >&2; exit 1; }
 model="$("${ADB[@]}" shell getprop ro.product.model 2>/dev/null | tr -d "\r" || true)"
@@ -12,7 +12,7 @@ model="$("${ADB[@]}" shell getprop ro.product.model 2>/dev/null | tr -d "\r" || 
 
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT="$ROOT/artifacts/private/t2-tier1/$STAMP-keyboard-deep-analysis"
-DEEP_WORK_ROOT="${T2_DEEP_WORK_ROOT:-$OUT}"
+DEEP_WORK_ROOT="${T2_DEEP_WORK_ROOT:-/srv/data/sable-build/titan2/deep-work}"
 WORK="$DEEP_WORK_ROOT/$STAMP-keyboard-deep-analysis-work"
 mkdir -p "$OUT" "$WORK/images" "$WORK/boot" "$WORK/dex"
 ln -s "$WORK" "$OUT/work-external" 2>/dev/null || true
