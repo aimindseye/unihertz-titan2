@@ -15,8 +15,8 @@ copying current stock UX assignments.
 | upper programmable side key | scan 249 / Func1 | DT `mt6363keys/home` sets `linux,keycodes=249` and `wakeup-source`; runtime exposes Func1 on `mtk-pmic-keys` | raw path remains active screen-off and stock policy can wake rear display | preserve independent side-key path; implement wake/presentation policy deliberately |
 | lower programmable side key | `gpio_key-func`, scan 250 / Func2 | exact producer module `gpio_key.ko`; module description `agold gpio key`; DT also contains enabled `agold_gpio_key` (`compatible=mediatek,agold_gpio_key`, GPIO/IRQ 73). PMIC `home2` independently advertises keycode 250 but is not the observed runtime Func2 event source | raw `gpio_key-func` path remains active screen-off; module registers a wakeup source; stock policy does not visibly wake a display | preserve the `gpio_key.ko` side-key path and choose Sable wake/action policy deliberately |
 | hardware volume keys | `gpio-keys` | exact platform driver: `/sys/bus/platform/drivers/gpio-keys`; DT has `volumeup` / `volumedown` children | stock wake semantics can be handled separately | preserve standard Linux key path |
-| synthetic helper | `ff_key`, virtual input device | live event source is virtual (`/sys/devices/virtual`) with KEY_ENTER/arrows/KEY_POWER/KEY_BACK/scan249 capabilities. Vendor-boot ramdisk module `focaltech_fp.ko` contains the exact `ff_key` string together with `ff_register_device` and `register gesture keycode`, making the FocalTech fingerprint driver the strong owner candidate; final symbol-level confirmation remains | non-waking in InputManager | preserve only if fingerprint gestures or a downstream consumer require it; otherwise omit from the first Sable adapter |
-| keyboard illumination | dedicated keypad-light stack | AW9523 parent sets `led_enable=0`; DTBO `compatible=agold,keypad-led`, `min_brightness=8`, `pwm_ch=2`; `keypad_led.ko` is the PWM driver. Live platform device is `/sys/devices/platform/keypad_led`, driver `keypad-led`, attribute `/sys/devices/platform/keypad_led/keyled_brightness`. Driver disassembly shows decimal input, effective clamp to 0..100, zero=off/nonzero=on, then `set_pwm_duty`; shell domain cannot read/stat the current value | n/a | use a Sable-owned 0..100 brightness API over the keypad PWM backend; document the low-level PWM mapping separately |
+| fingerprint gesture helper | `ff_key`, virtual input device | attributed to loaded vendor-boot module `focaltech_fp.ko`: the module contains exact runtime name `ff_key`, source path `.../fingerprint/focaltech_fp/ff_core.c`, `ff_register_device`, `register gesture keycode:%d`, and imports `input_allocate_device` / `input_register_device` | non-waking in InputManager | not part of the physical keyboard contract; preserve only if Sable wants FocalTech fingerprint gesture keys |
+| keyboard illumination | dedicated keypad-light stack | DTBO `compatible=agold,keypad-led`, `min_brightness=8`, `pwm_ch=2`; live node `/sys/devices/platform/keypad_led/keyled_brightness`; vendor init explicitly `chmod 0666` + `chown system`; SELinux labels it `sysfs_agold`. Driver accepts 0..100, 0 disables PWM, nonzero values below 8 are raised to 8, and 100 is internally capped to 99 before MediaTek PWM programming | n/a | use a Sable-owned 0..100 API; map 0=off and preserve the board minimum nonzero level unless Sable intentionally changes it |
 
 Do not hard-code event numbers.
 
@@ -180,6 +180,33 @@ Vendor-boot inspection produced the first concrete `ff_key` owner candidate:
   instruction widths. The scanner has been corrected; prior method labels such
   as `EventLogTags.writeAmDestroyService` must not be treated as evidence.
 
+The final attribution pass closes `ff_key` for keyboard-adapter purposes:
+
+- the live `focaltech_fp` module is loaded, and that exact module contains the
+  runtime name `ff_key`, FocalTech fingerprint source paths,
+  `ff_register_device`, `register gesture keycode:%d`, and imports
+  `input_allocate_device` / `input_register_device`. This is sufficient to
+  attribute `ff_key` to the fingerprint gesture stack rather than the Titan
+  physical keyboard stack.
+- vendor init explicitly sets mode 0666 and owner `system` on
+  `/sys/devices/platform/keypad_led/keyled_brightness`; system_ext SELinux
+  labels the node `sysfs_agold`. The inability of the ADB shell to read it is
+  therefore an SELinux-domain restriction, not a missing node or restrictive
+  Unix mode.
+- `set_pwm_duty` uses DT `min_brightness=8`: for nonzero requests below the
+  minimum, the programmed effective level is raised to 8; an effective value
+  at or above 100 is reduced to 99. The driver programs a complementary PWM
+  timing pair `effective` and `101-effective`. An original request of zero
+  subsequently disables the PWM channel. The public sysfs write path clamps
+  input to 0..100.
+- corrected DEX scanning places literal Android key code 404 in
+  `PhoneWindowManager.interceptKeyBeforeQueueing` and, more specifically, in
+  `AguiKeyboardShortcut.keyboardShortcutFunc`. The latter reads
+  `KeyEvent.getKeyCode()/getAction()/getDeviceId()`, controls keyboard light,
+  and calls `ShortcutInterceptKey`; this establishes a stock **consumer /
+  policy intercept** for 404 but does not yet prove where the swipe-generated
+  404 KeyEvent is created.
+
 Stock properties also expose the policy split:
 
 - `ro.agui.factory.physical_keyboard_project=yes`;
@@ -249,10 +276,9 @@ The first keyboard adapter should prove:
 
 The first static pass substantially narrowed the unknowns. Next resolve:
 
-- final confirmation that `focaltech_fp.ko::ff_register_device` creates the live `ff_key` input device and its gesture-key capability set;
-- instantaneous value and low-level PWM scaling behind `/sys/devices/platform/keypad_led/keyled_brightness`; the effective driver input range is now known as 0..100 but stock shell access is denied;
+- instantaneous cached value of `/sys/devices/platform/keypad_led/keyled_brightness`; node/permissions/range/scaling are known but the shell SELinux domain cannot read it;
 - exact stock UI/policy mapping (`agui_keyboard_background_light`, automatic/timeout/slider) to `keyled_brightness`, if matching stock behavior is desirable;
-- vendor key 404 producer; current broad integer scanning is too noisy and must be narrowed to real KeyEvent/input code.
+- producer of the swipe-generated Android key 404; `AguiKeyboardShortcut.keyboardShortcutFunc` is now confirmed as a consumer/interceptor, not yet as the creator.
 
 If any field remains vendor-private after static inspection, record the boundary
 and defer deeper reverse engineering unless it blocks the first Sable adapter.
