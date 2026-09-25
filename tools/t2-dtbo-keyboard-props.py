@@ -21,7 +21,7 @@ if endian is None:
 magic,total,header_size,entry_size,count,entries_off,page_size,version = struct.unpack_from(endian+'8I', data, 0)
 print(f'DTBO header: total={total} entry_size={entry_size} entries={count} version={version}')
 
-wanted = re.compile(r'aw9523|keypad_led|mt6363|keyboard|key|wakeup|brightness|pwm|touchpad|synaptics|hynitron', re.I)
+wanted = re.compile(r'aw9523|keypad_led|mt6363|keyboard|key|wakeup|brightness|pwm|touchpad|touch_pad|tkpd|cap_tkpd|synaptics|hynitron', re.I)
 BEGIN_NODE, END_NODE, PROP, NOP, END = 1, 2, 3, 4, 9
 
 def align4(n): return (n + 3) & ~3
