@@ -15,8 +15,8 @@ copying current stock UX assignments.
 | upper programmable side key | scan 249 / Func1 | DT `mt6363keys/home` sets `linux,keycodes=249` and `wakeup-source`; runtime exposes Func1 on `mtk-pmic-keys` | raw path remains active screen-off and stock policy can wake rear display | preserve independent side-key path; implement wake/presentation policy deliberately |
 | lower programmable side key | `gpio_key-func`, scan 250 / Func2 | exact producer module `gpio_key.ko`; module description `agold gpio key`; DT also contains enabled `agold_gpio_key` (`compatible=mediatek,agold_gpio_key`, GPIO/IRQ 73). PMIC `home2` independently advertises keycode 250 but is not the observed runtime Func2 event source | raw `gpio_key-func` path remains active screen-off; module registers a wakeup source; stock policy does not visibly wake a display | preserve the `gpio_key.ko` side-key path and choose Sable wake/action policy deliberately |
 | hardware volume keys | `gpio-keys` | exact platform driver: `/sys/bus/platform/drivers/gpio-keys`; DT has `volumeup` / `volumedown` children | stock wake semantics can be handled separately | preserve standard Linux key path |
-| synthetic helper | `ff_key`, virtual input device | producer unresolved; exact-name scan across extracted V01.00.13 vendor-DLKM modules found no `ff_key` owner | non-waking in InputManager | preserve only if required after consumer mapping; do not block first adapter on it |
-| keyboard illumination | dedicated keypad-light stack | AW9523 parent sets `led_enable=0`; DTBO `compatible=agold,keypad-led`, `min_brightness=8`, `pwm_ch=2`; `keypad_led.ko` is the PWM driver. Live platform device is `/sys/devices/platform/keypad_led`, driver `keypad-led`, attribute `/sys/devices/platform/keypad_led/keyled_brightness`; shell domain cannot currently read/stat the attribute value | n/a | use the `keypad_led` PWM backend; Sable should own brightness/timeout policy and expose a readable adapter API |
+| synthetic helper | `ff_key`, virtual input device | live event source is virtual (`/sys/devices/virtual`) with KEY_ENTER/arrows/KEY_POWER/KEY_BACK/scan249 capabilities. No exact `ff_key` string owner was found in vendor/system_ext/product/system, vendor/system/odm DLKM, or the decompressed GKI boot kernel | non-waking in InputManager | preserve only if a downstream consumer requires it; continue attribution through vendor-boot ramdisks and uinput/native producers |
+| keyboard illumination | dedicated keypad-light stack | AW9523 parent sets `led_enable=0`; DTBO `compatible=agold,keypad-led`, `min_brightness=8`, `pwm_ch=2`; `keypad_led.ko` is the PWM driver. Live platform device is `/sys/devices/platform/keypad_led`, driver `keypad-led`, attribute `/sys/devices/platform/keypad_led/keyled_brightness`. Driver disassembly shows decimal input, effective clamp to 0..100, zero=off/nonzero=on, then `set_pwm_duty`; shell domain cannot read/stat the current value | n/a | use a Sable-owned 0..100 brightness API over the keypad PWM backend; document the low-level PWM mapping separately |
 
 Do not hard-code event numbers.
 
@@ -134,6 +134,33 @@ The final live closeout also established:
   input scan-code namespace and must not be conflated with the vendor Android
   KeyEvent value observed during keyboard-surface gesture testing.
 
+The deep offline pass further established:
+
+- `ff_key` is present live as a virtual keyboard-class input device with
+  KEY_ENTER, directional arrows, KEY_POWER, KEY_BACK and scan 249
+  capabilities. Its EventHub/sysfs root is virtual. No literal `ff_key`
+  ownership was found in the extracted `vendor`, `system_ext`, `product`,
+  or `system` filesystems, in the extracted vendor/system/odm DLKM modules,
+  or in the decompressed GKI `boot.img` kernel. The remaining likely
+  locations are vendor-boot ramdisk code/modules or a dynamically named
+  userspace/uinput-style producer.
+- the live global setting `agui_keyboard_background_light=1` exists, but this
+  is a policy setting and must not be equated with the instantaneous PWM level.
+- `keyled_brightness_store` parses a decimal unsigned value, clamps values at
+  100, records on/off as zero versus nonzero, and calls `set_pwm_duty`.
+  `keyled_brightness_show` returns the driver's cached brightness field.
+  Therefore the driver-facing effective brightness domain is 0..100 even
+  though the current numeric value remains unreadable from the stock shell
+  domain.
+- the only exact extracted-filesystem hits for `keyled_brightness` were the
+  vendor init configuration and system_ext SELinux policy. Those files should
+  be inspected next to identify the authorized writer/domain and whether an
+  existing privileged service can expose the current value without rooting.
+- a whole-filesystem DEX integer-404 scan covered hundreds of APK/JAR
+  containers but produced many unrelated numeric-404 matches and did not
+  isolate the keyboard-gesture producer. Follow-up must require actual
+  `KeyEvent`/input-context references rather than merely the integer literal.
+
 Stock properties also expose the policy split:
 
 - `ro.agui.factory.physical_keyboard_project=yes`;
@@ -203,10 +230,10 @@ The first keyboard adapter should prove:
 
 The first static pass substantially narrowed the unknowns. Next resolve:
 
-- producer/consumer role of `ff_key`; it was not found as an exact input-device name in the extracted vendor-DLKM modules and is non-blocking for the first adapter;
-- current/accepted numeric semantics of `/sys/devices/platform/keypad_led/keyled_brightness`; the exact live path is known but stock shell access is denied;
-- exact stock UI slider-to-`keyled_brightness` mapping, if matching stock levels is desirable;
-- whether vendor key 404 is synthesized in kernel/native/framework code.
+- producer/consumer role of `ff_key`; the large-filesystem, DLKM and GKI-kernel searches are negative, so inspect vendor-boot ramdisks and uinput/native producers next;
+- instantaneous value and low-level PWM scaling behind `/sys/devices/platform/keypad_led/keyled_brightness`; the effective driver input range is now known as 0..100 but stock shell access is denied;
+- exact stock UI/policy mapping (`agui_keyboard_background_light`, automatic/timeout/slider) to `keyled_brightness`, if matching stock behavior is desirable;
+- vendor key 404 producer; current broad integer scanning is too noisy and must be narrowed to real KeyEvent/input code.
 
 If any field remains vendor-private after static inspection, record the boundary
 and defer deeper reverse engineering unless it blocks the first Sable adapter.
