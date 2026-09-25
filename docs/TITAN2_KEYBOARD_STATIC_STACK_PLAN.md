@@ -198,7 +198,7 @@ firmware/reconstruction corpus**, not by re-scanning or re-extracting the raw
 Known private corpus on `ai-g732`:
 
 ```text
-/srv/data/sable-build/artifacts/titan2/stock-firmware/lichtmetzger-20260920/
+/srv/data/sable-build/titan2/artifacts/stock-firmware/lichtmetzger-20260920/
   Firmware/Android 16/TEE/
     2026021022_g71v78c2k_dfl_tee.zip
     2026042212_g71v78c2k_dfl_tee.zip
@@ -206,7 +206,7 @@ Known private corpus on `ai-g732`:
     2026021022_g71v78c2k_dfl_tee-ota.zip
     2026042212_g71v78c2k_dfl_tee-ota.zip
 
-/srv/data/sable-build/artifacts/titan2/stock-firmware/unihertz-device-fota-20260922/
+/srv/data/sable-build/titan2/artifacts/stock-firmware/unihertz-device-fota-20260922/
   inspection/bit-equivalence/
 ```
 
@@ -238,3 +238,32 @@ the Pixel build is resource-sensitive.
 Raw OTA images, payloads, extracted partitions and module binaries stay only in
 the private artifact tree on `ai-g732`. Commit only normalized conclusions.
 
+
+
+## Canonical ai-g732 Titan 2 layout
+
+As of 2026-09-25 the Titan 2 research tree is consolidated on the 3.6 TiB
+WD_BLACK NVMe mounted at `/srv/data/sable-build`:
+
+```text
+/srv/data/sable-build/titan2/
+  repo/       # Git working tree
+  artifacts/  # private firmware / research corpus
+  deep-work/  # large temporary extraction / decompilation work
+  scratch/    # disposable ad-hoc work
+```
+
+Compatibility symlinks are intentionally retained so older runbooks and scripts
+remain valid:
+
+```text
+/srv/data/sable-build/unihertz-titan2
+  -> /srv/data/sable-build/titan2/repo
+
+/srv/data/sable-build/artifacts/titan2
+  -> /srv/data/sable-build/titan2/artifacts
+```
+
+New documentation and new tool defaults should use the canonical
+`/srv/data/sable-build/titan2/...` paths. Raw firmware, extracted images and
+large deep-analysis work remain private on `ai-g732`.
