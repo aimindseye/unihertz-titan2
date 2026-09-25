@@ -12,7 +12,7 @@ fi
 FB=(fastboot -s "$TITAN_FASTBOOT_SERIAL")
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT="$ROOT/artifacts/private/t2-tier2/$STAMP-$MODE-fastboot-preflight"
-REPORT="$OUT/REPORT.txt"
+REPORT="$OUT/REPORT-${STAMP}-${MODE}-fastboot-preflight.txt"
 mkdir -p "$OUT"
 
 if ! "${FB[@]}" devices 2>/dev/null | grep -q .; then
