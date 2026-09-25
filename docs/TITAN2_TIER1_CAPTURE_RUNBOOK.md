@@ -204,6 +204,19 @@ bash tools/t2-tier1-collect.sh state subscreen-disabled
 bash tools/t2-tier1-collect.sh events subscreen-disabled-touch 12
 ```
 
+For rear notification presentation, use the guided helper after the core
+SubScreen lifecycle capture:
+
+```bash
+export TITAN_SERIAL="$Titan2"
+bash tools/section-c-rear-notifications.sh
+```
+
+It asks the operator to toggle the stock rear-notification setting OFF and ON,
+posts the same kind of benign local shell notification in each phase, records
+whether the rear display wakes or presents the notification, and captures
+private settings/package/service state for an OFF-vs-ON owner/storage diff.
+
 Characterize, without assuming a display ID:
 
 - display ID/type/unique ID;
