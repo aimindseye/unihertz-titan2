@@ -16,8 +16,13 @@ if ! "${ADB[@]}" get-state >/dev/null 2>&1; then
 fi
 
 MODEL="$("${ADB[@]}" shell getprop ro.product.model 2>/dev/null | tr -d '\r')"
-if [[ "$MODEL" != *"Titan 2"* ]]; then
-  echo "error: selected device does not report Titan 2 (model=$MODEL)" >&2
+VENDOR_MODEL="$("${ADB[@]}" shell getprop ro.product.vendor.model 2>/dev/null | tr -d '\r')"
+VENDOR_DEVICE="$("${ADB[@]}" shell getprop ro.product.vendor.device 2>/dev/null | tr -d '\r')"
+
+# Stock reports Titan 2 directly. A future generic/Sable system image may replace
+# ro.product.model, so also accept the preserved vendor identity.
+if [[ "$MODEL" != *"Titan 2"* && "$VENDOR_MODEL" != *"Titan 2"* && "$VENDOR_DEVICE" != "Titan_2" ]]; then
+  echo "error: selected device does not report Titan 2 identity (model=$MODEL vendor_model=$VENDOR_MODEL vendor_device=$VENDOR_DEVICE)" >&2
   exit 3
 fi
 
@@ -125,6 +130,7 @@ EOF
   echo "label=$LABEL"
   echo "model=$MODEL"
   echo "vendor_model=$VENDOR_MODEL"
+  echo "vendor_device=$VENDOR_DEVICE"
   echo "build=$("${ADB[@]}" shell getprop ro.build.display.id 2>/dev/null | tr -d '\r')"
   echo "incremental=$("${ADB[@]}" shell getprop ro.build.version.incremental 2>/dev/null | tr -d '\r')"
   echo "security_patch=$("${ADB[@]}" shell getprop ro.build.version.security_patch 2>/dev/null | tr -d '\r')"
