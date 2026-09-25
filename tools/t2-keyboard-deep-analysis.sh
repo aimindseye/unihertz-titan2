@@ -12,8 +12,10 @@ model="$("${ADB[@]}" shell getprop ro.product.model 2>/dev/null | tr -d "\r" || 
 
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT="$ROOT/artifacts/private/t2-tier1/$STAMP-keyboard-deep-analysis"
-WORK="$OUT/work"
+DEEP_WORK_ROOT="${T2_DEEP_WORK_ROOT:-$OUT}"
+WORK="$DEEP_WORK_ROOT/$STAMP-keyboard-deep-analysis-work"
 mkdir -p "$OUT" "$WORK/images" "$WORK/boot" "$WORK/dex"
+ln -s "$WORK" "$OUT/work-external" 2>/dev/null || true
 adbsh() { "${ADB[@]}" shell "$@"; }
 
 {
@@ -23,7 +25,9 @@ adbsh() { "${ADB[@]}" shell "$@"; }
   echo "collector_git_commit=$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo unknown)"
   echo "device_model=$model"
   echo "serial=<redacted>"
-  df -h "$ROOT" "$EQ" 2>/dev/null || true
+  echo "deep_work_root=$DEEP_WORK_ROOT"
+  echo "deep_work_dir=$WORK"
+  df -h "$ROOT" "$EQ" "$DEEP_WORK_ROOT" 2>/dev/null || true
 } > "$OUT/METADATA.txt"
 
 # Tool inventory.
@@ -172,7 +176,8 @@ MODROOT="$(ls -1dt "$ROOT"/artifacts/private/t2-tier1/*-keyboard-dtbo-erofs/vend
 
 echo
 echo "Deep keyboard analysis complete:"
-echo "  $OUT"
+echo "  report: $OUT"
+echo "  work:   $WORK"
 echo
 echo "Tool inventory:"; cat "$OUT/tools.txt"
 echo
