@@ -124,6 +124,7 @@ EOF
   echo "timestamp_utc=$STAMP"
   echo "label=$LABEL"
   echo "model=$MODEL"
+  echo "vendor_model=$VENDOR_MODEL"
   echo "build=$("${ADB[@]}" shell getprop ro.build.display.id 2>/dev/null | tr -d '\r')"
   echo "incremental=$("${ADB[@]}" shell getprop ro.build.version.incremental 2>/dev/null | tr -d '\r')"
   echo "security_patch=$("${ADB[@]}" shell getprop ro.build.version.security_patch 2>/dev/null | tr -d '\r')"
