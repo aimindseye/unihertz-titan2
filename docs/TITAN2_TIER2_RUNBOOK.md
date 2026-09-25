@@ -57,12 +57,12 @@ script rather than assuming a generic `REPORT.txt` filename.
 E0 restore verification      PASS
 E1 bootloader preflight      PASS
 E2 fastbootd / LP preflight PASS
-E3 Sable artifact preflight PENDING
+BUILD-TARGET                 REQUIRED
+E3 Sable artifact preflight BLOCKED — no Titan 2 artifact yet
 ```
 
 The validated fastbootd state is slot `a`, unlocked, no active snapshot update,
-and `super=0x240000000` (9 GiB). The next mutation-independent step is the
-exact Sable `system.img` artifact preflight.
+and `super=0x240000000` (9 GiB). Sable Release 9 currently has only a Pixel 7 / Panther build; that artifact must not be used on Titan 2. The next step is the Titan 2 build target described in [TITAN2_SABLE_BUILD_TARGET_PLAN.md](TITAN2_SABLE_BUILD_TARGET_PLAN.md). E3 resumes only after a Titan 2 artifact exists.
 
 ## Phase 1 — stock runtime baseline
 
