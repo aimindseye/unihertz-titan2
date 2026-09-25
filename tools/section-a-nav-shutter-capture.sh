@@ -162,10 +162,18 @@ echo
 optional_nav_test nav-back "Back / Escape candidate"
 optional_nav_test nav-home "Home candidate"
 optional_nav_test nav-recents "Recents candidate"
-optional_nav_test cursor-up "cursor/navigation Up candidate"
-optional_nav_test cursor-down "cursor/navigation Down candidate"
-optional_nav_test cursor-left "cursor/navigation Left candidate"
-optional_nav_test cursor-right "cursor/navigation Right candidate"
+echo
+echo "CURSOR/NAVIGATION NOTE:"
+echo "  Do NOT use the main touchscreen."
+echo "  Do NOT enable keyboard Mouse Mode just to move the pointer."
+echo "  These four tests are only for a keyboard-originated arrow/navigation"
+echo "  control or gesture that stock firmware presents as Up/Down/Left/Right."
+echo "  If you do not know of such a control, SKIP all four; that is a valid result."
+echo
+optional_nav_test cursor-up "keyboard-originated cursor/navigation Up candidate (not touchscreen or Mouse Mode)"
+optional_nav_test cursor-down "keyboard-originated cursor/navigation Down candidate (not touchscreen or Mouse Mode)"
+optional_nav_test cursor-left "keyboard-originated cursor/navigation Left candidate (not touchscreen or Mouse Mode)"
+optional_nav_test cursor-right "keyboard-originated cursor/navigation Right candidate (not touchscreen or Mouse Mode)"
 
 echo
 echo "============================================================"
