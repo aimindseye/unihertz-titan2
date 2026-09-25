@@ -7,7 +7,7 @@ LABEL="${1:-stock-pre-n0}"
 ADB=(adb -s "$TITAN_SERIAL")
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT="$ROOT/artifacts/private/t2-tier2/$STAMP-$LABEL-runtime"
-REPORT="$OUT/REPORT.txt"
+REPORT="$OUT/REPORT-${STAMP}-${LABEL}-runtime.txt"
 mkdir -p "$OUT"/{core,vintf,security,telephony,audio,sensors,power,camera,network}
 
 if ! "${ADB[@]}" get-state >/dev/null 2>&1; then
@@ -155,4 +155,4 @@ EOF
 echo "Tier 2 runtime baseline written:"
 echo "  $REPORT"
 echo "  evidence=$OUT"
-echo "Attach REPORT.txt for metadata only; attach specific private files only when analysis requires them."
+echo "Attach $(basename "$REPORT") for metadata only; attach specific private files only when analysis requires them."
