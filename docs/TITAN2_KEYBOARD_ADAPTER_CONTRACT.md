@@ -1,6 +1,6 @@
 # Titan 2 keyboard adapter contract — draft
 
-Status: **core keyboard hardware contract complete; residual synthetic/policy attribution remains**
+Status: **keyboard hardware and vendor input-translation contract complete; only optional stock-UX parity details remain**
 
 This document is the implementation-facing output of the Titan 2 keyboard
 research. It should be filled from `t2-keyboard-static-map.sh` evidence, not by
@@ -27,7 +27,7 @@ Do not hard-code event numbers.
 | `.kl` | TitanKey-specific layout plus Generic mappings for generic/virtual devices | retain only mappings required by Sable; avoid stock shortcut semantics as hardware truth |
 | `.kcm` | TitanKey character map plus Generic fallback on generic devices | preserve base character/modifier behavior; Sable IME policy remains replaceable |
 | `.idc` | TitanKey/touch classification where present; InputReader classifies `touchPad` as TOUCHPAD | reproduce device classification needed for correct sources/axes |
-| InputReader/vendor extensions | programmable-key interception and synthetic key 404 are observed above raw input | preserve only hardware-required translation; replace stock shortcut policy |
+| InputReader/vendor extensions | native `android::KeyboardInputMapper::aguiSetProgrammableKey(int)` synthesizes Android key code 404 for a vendor programmable-key path; `KeyboardInputMapper::processKey` and `InputDispatcher::notifyKey` special-case 404, while `PhoneWindowManager` / `AguiKeyboardShortcut` consume it | do not reproduce 404 as a hardware requirement; either map the underlying gesture directly in Sable or reproduce this vendor translation only for stock-behavior compatibility |
 | wake policy | matrix/touchPad modules and keyboard-light module all reference MediaTek display-notify infrastructure; side-key paths differ | confirm exact driver bindings and wake sysfs, then implement explicit Sable suspend/wake policy |
 
 ## 2.1 Static-stack findings from stock V01.00.13
@@ -207,6 +207,37 @@ The final attribution pass closes `ff_key` for keyboard-adapter purposes:
   policy intercept** for 404 but does not yet prove where the swipe-generated
   404 KeyEvent is created.
 
+The policy-closeout pass resolves the remaining owner boundaries:
+
+- `keyled_brightness` is labeled `sysfs_agold`. SELinux grants
+  `system_server` read/write/ioctl/open access, grants `system_app`
+  read/write access, and also permits the MediaTek light HAL domain to read and
+  write it. This closes the authorization boundary for the keyboard-light
+  backend.
+- stock `services.jar` contains
+  `com.agui.server.functional.KeyboardLightController`, the literal
+  `/sys/devices/platform/keypad_led/keyled_brightness` path, and the
+  `agui_keyboard_background_light` setting key. The live system log confirms
+  that `AguiFunctionalService` starts a `KeyboardLightController` instance.
+  Therefore the stock runtime writer/policy owner is the AGUI controller in
+  `system_server`; Settings exposes policy/UI controls rather than owning the
+  low-level hardware path.
+- `AguiOtherSettings` exposes the keyboard-light
+  `BrightnessPreference` and `persist.sys.keyboard_light_slide_on`;
+  `MtkSettings` references `agui_keyboard_background_light`. These are
+  replaceable stock policy surfaces.
+- the native input stack closes Android key 404 synthesis:
+  `android::KeyboardInputMapper::aguiSetProgrammableKey(int)` explicitly
+  loads/returns `0x194` (404), and `KeyboardInputMapper::processKey`
+  immediately recognizes that value. Downstream `InputDispatcher::notifyKey`
+  also contains a dedicated 404 path. Java-side
+  `PhoneWindowManager.interceptKeyBeforeQueueing` and
+  `AguiKeyboardShortcut.keyboardShortcutFunc` are therefore consumers of an
+  already-synthesized native key event, not the producer.
+- the exact string predicate(s) inside `aguiSetProgrammableKey` were not
+  decoded in this pass. That detail is optional unless Sable intentionally
+  reproduces the stock gesture-to-404 compatibility behavior.
+
 Stock properties also expose the policy split:
 
 - `ro.agui.factory.physical_keyboard_project=yes`;
@@ -236,8 +267,8 @@ the kernel input devices themselves.
 
 - side-key raw input plumbing;
 - rear-display wake plumbing tied to Func1 if implemented below replaceable UI;
-- any required touchPad device association/classification;
-- keyboard-light backend access if only vendor services can drive it.
+- required touchPad device association/classification;
+- the `keypad_led` PWM backend itself. Stock `KeyboardLightController` is policy, not a unique hardware owner.
 
 ### Reimplement in Sable policy
 
@@ -272,13 +303,17 @@ The first keyboard adapter should prove:
 - no dependency on Kika is required for base hardware input;
 - stock-app removal does not remove the only owner of a required hardware function.
 
-## 6. Remaining open fields
+## 6. Remaining optional parity details
 
-The first static pass substantially narrowed the unknowns. Next resolve:
+No remaining item blocks the first Sable keyboard adapter. The hardware owners,
+input translation boundary, wake-relevant paths, and keyboard-light backend are
+sufficiently mapped for implementation.
 
-- instantaneous cached value of `/sys/devices/platform/keypad_led/keyled_brightness`; node/permissions/range/scaling are known but the shell SELinux domain cannot read it;
-- exact stock UI/policy mapping (`agui_keyboard_background_light`, automatic/timeout/slider) to `keyled_brightness`, if matching stock behavior is desirable;
-- producer of the swipe-generated Android key 404; `AguiKeyboardShortcut.keyboardShortcutFunc` is now confirmed as a consumer/interceptor, not yet as the creator.
+Optional follow-up only if stock UX parity is desired:
 
-If any field remains vendor-private after static inspection, record the boundary
-and defer deeper reverse engineering unless it blocks the first Sable adapter.
+- instantaneous cached value of `/sys/devices/platform/keypad_led/keyled_brightness` on stock; the node, authorized domains, API range, scaling, and stock `system_server` controller are already known;
+- exact Settings/controller mapping for automatic light, timeout, slide-to-light, and slider persistence;
+- exact string predicate(s) inside native `KeyboardInputMapper::aguiSetProgrammableKey(int)` that choose the vendor 404 compatibility path.
+
+Defer those details unless implementation testing shows that Sable needs exact
+stock behavior rather than direct, cleaner Sable policy.
