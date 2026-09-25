@@ -212,10 +212,10 @@ export TITAN_SERIAL="$Titan2"
 bash tools/section-c-rear-notifications.sh
 ```
 
-It asks the operator to toggle the stock rear-notification setting OFF and ON,
-posts the same kind of benign local shell notification in each phase, records
-whether the rear display wakes or presents the notification, and captures
-private settings/package/service state for an OFF-vs-ON owner/storage diff.
+It keeps the overall rear-notification feature enabled, asks the operator to
+set the installed Input Probe app BLOCKED then ALLOWED in the stock per-app
+allow-list, posts the same app-owned local notification in each phase, records
+rear wake/presentation, and captures private settings/package/service evidence.
 
 Characterize, without assuming a display ID:
 
@@ -242,9 +242,11 @@ bash tools/section-d-ownership-capture.sh
 ```
 
 The helper captures static package/service/overlay ownership for the known
-keyboard/SubScreen candidates and then guides one keyboard-backlight OFF -> ON
-comparison. The backlight step uses only the stock UI/QS control and captures
-settings, lights/sysfs state and logcat around the transition.
+keyboard/SubScreen candidates and then guides a keyboard-backlight minimum ->
+higher comparison using the actual stock brightness slider. For the cleaner
+backend trace, use `tools/section-d-keyboard-backlight-trace.sh`; current stock
+evidence shows the feature is vendor-owned and is not exposed through Android's
+normal KbdBacklightController/Lights HAL surface.
 
 
 Use the baseline package/service/overlay evidence plus targeted package dumps.
@@ -274,6 +276,21 @@ Target behaviors:
 - programmable Func1/Func2 buttons;
 - SubScreen lifecycle/input/security;
 - Kika integration.
+
+## Phase 7 — remaining navigation and camera-shutter candidates
+
+After Sections B-D core work, use the guided remaining-keys helper:
+
+```bash
+export TITAN_SERIAL="$Titan2"
+bash tools/section-a-nav-shutter-capture.sh
+```
+
+It keeps each capture isolated and records Linux events, Input Probe delivery,
+focused-task changes and operator-visible behavior for Back/Home/Recents
+candidates, navigation/cursor candidates and stock-Camera shutter candidates.
+Printed labels are treated only as physical prompts; Android semantics are
+assigned from captured evidence.
 
 ## Section A completion requirement
 
