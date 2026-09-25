@@ -47,6 +47,9 @@ SECONDARY_DISPLAY_BASELINE=COMPLETE_TIER1
 
 SABLEOS_BRINGUP_AUTHORIZED=YES
 SABLEOS_BRINGUP_STATUS=ACTIVE_TIER2_N0_PREFLIGHT
+TITAN2_BUILD_TARGET=REQUIRED
+TITAN2_SABLE_ARTIFACT=NOT_BUILT
+PIXEL7_ARTIFACT_REUSABLE_FOR_TITAN2=NO
 ```
 
 ## What "authorized" means
@@ -134,7 +137,8 @@ stock runtime baseline
 stock restore verification
 bootloader-fastboot preflight
 fastbootd / LP preflight
-exact Sable system artifact SHA-256 + logical size
+Titan 2-specific Sable build target
+exact Titan 2 Sable artifact SHA-256 + logical size
 reviewed AVB action
 reviewed userdata policy
 ```
@@ -146,3 +150,14 @@ artifact has been preflighted against the current Titan 2 LP/AVB state.
 After first boot, use the saved stock-vs-Sable runtime comparison and
 [TITAN2_N0_ACCEPTANCE_MATRIX.md](TITAN2_N0_ACCEPTANCE_MATRIX.md) to drive
 device-specific fixes.
+
+
+## Build-target boundary
+
+The existing Pixel 7 / Panther Release 9 artifact is a reference build only. It
+must not be flashed to Titan 2 or treated as the Titan 2 N0 candidate.
+
+The current next step is [TITAN2_SABLE_BUILD_TARGET_PLAN.md](TITAN2_SABLE_BUILD_TARGET_PLAN.md):
+create the Titan 2 Sable product/device target while preserving the stock MTK
+kernel/vendor stack for N0. E3 artifact preflight remains blocked until that
+build exists.
