@@ -21,11 +21,30 @@ OUT="$ROOT/artifacts/private/t2-tier1/$STAMP-section-c-subscreen"
 mkdir -p "$OUT"
 
 cleanup_pid=""
-cleanup() {
+remote_getevent_pid=""
+remote_getevent_pidfile=""
+
+stop_event_capture() {
+  if [[ -n "$remote_getevent_pid" ]]; then
+    "${ADB[@]}" shell "kill -INT $remote_getevent_pid" >/dev/null 2>&1 || \
+      "${ADB[@]}" shell "kill -TERM $remote_getevent_pid" >/dev/null 2>&1 || true
+  fi
+
   if [[ -n "$cleanup_pid" ]] && kill -0 "$cleanup_pid" 2>/dev/null; then
-    kill -TERM "$cleanup_pid" 2>/dev/null || true
     wait "$cleanup_pid" 2>/dev/null || true
   fi
+
+  if [[ -n "$remote_getevent_pidfile" ]]; then
+    "${ADB[@]}" shell "rm -f $remote_getevent_pidfile" >/dev/null 2>&1 || true
+  fi
+
+  cleanup_pid=""
+  remote_getevent_pid=""
+  remote_getevent_pidfile=""
+}
+
+cleanup() {
+  stop_event_capture
 }
 trap cleanup EXIT INT TERM
 
@@ -78,6 +97,7 @@ snapshot() {
 event_capture() {
   local label="$1"
   local instruction="$2"
+  local i
 
   echo
   echo "============================================================"
@@ -86,23 +106,38 @@ event_capture() {
   echo "Press ENTER here to START. There is NO timer."
   read -r
 
+  remote_getevent_pidfile="/data/local/tmp/sable-section-c-getevent-$.pid"
+  remote_getevent_pid=""
+
+  "${ADB[@]}" shell "rm -f $remote_getevent_pidfile" >/dev/null 2>&1 || true
+
   echo "Capture running."
   echo "Perform the phone action, then come back and press ENTER to STOP."
   echo
 
   {
     echo '$ adb -s <redacted> shell getevent -lt'
-    "${ADB[@]}" shell getevent -lt
+    "${ADB[@]}" shell "sh -c 'echo \$\$ > $remote_getevent_pidfile; exec getevent -lt'"
   } > "$OUT/$label-events.txt" 2>&1 &
   cleanup_pid=$!
 
+  for i in {1..30}; do
+    remote_getevent_pid="$("${ADB[@]}" shell "cat $remote_getevent_pidfile 2>/dev/null" 2>/dev/null | tr -d '\r\n' || true)"
+    [[ "$remote_getevent_pid" =~ ^[0-9]+$ ]] && break
+    remote_getevent_pid=""
+    sleep 0.1
+  done
+
+  if [[ -z "$remote_getevent_pid" ]]; then
+    echo "warning: could not obtain remote getevent PID; stopping this capture for safety" >&2
+    stop_event_capture
+    return 1
+  fi
+
   read -r
+  stop_event_capture
 
-  kill -TERM "$cleanup_pid" 2>/dev/null || true
-  wait "$cleanup_pid" 2>/dev/null || true
-  cleanup_pid=""
-
-  echo "Stopped: $label"
+  echo "Stopped cleanly: $label"
 }
 
 observe_yes_no_other() {
