@@ -191,23 +191,50 @@ owners:
 - `mtk-pmic-keys` -> kernel module `mtk_pmic_keys`;
 - standard `gpio-keys` appears built-in or does not expose a module symlink.
 
-The remaining questions are better answered from the stock OTA / extracted
-firmware than from more live UX testing. In particular, firmware images can
-expose:
+The remaining questions are better answered from the **existing validated
+firmware/reconstruction corpus**, not by re-scanning or re-extracting the raw
+3.5 GiB archives.
 
-- full DT/DTBO property values;
-- module `.modinfo`, aliases and literal input-device names;
-- vendor framework/APK/JAR strings for `ff_key`, `gpio_key-func` and key 404;
-- the keyboard-light backend and its DT/PWM bindings;
-- static `.kl/.kcm/.idc` copies in partition images.
+Known private corpus on `ai-g732`:
 
-Use:
+```text
+/srv/data/sable-build/artifacts/titan2/stock-firmware/lichtmetzger-20260920/
+  Firmware/Android 16/TEE/
+    2026021022_g71v78c2k_dfl_tee.zip
+    2026042212_g71v78c2k_dfl_tee.zip
+  OTA/Android 16/TEE/
+    2026021022_g71v78c2k_dfl_tee-ota.zip
+    2026042212_g71v78c2k_dfl_tee-ota.zip
 
-```bash
-bash tools/t2-ota-keyboard-inspect.sh /path/to/titan2-ota-or-extracted-firmware
+/srv/data/sable-build/artifacts/titan2/stock-firmware/unihertz-device-fota-20260922/
+  inspection/bit-equivalence/
 ```
 
+The repository firmware-equivalence work established that the non-EEA
+`_tee` V01.00.13 full images are the exact source expected by the observed US
+V01.00.13 -> V01.00.14 incremental OTA, and that the non-EEA V01.00.14 full
+images are the exact target for all 34 OTA-managed partitions. The private
+`inspection/bit-equivalence` tree was created during that reconstruction /
+comparison work and should be reused before touching the raw archives.
+
+For keyboard analysis, first resolve the already-extracted image/subdirectory
+names with **shallow directory listings only**. Do not run broad `find`,
+`du`, recursive grep, payload extraction, or whole-image `strings` while
+another resource-intensive build is active.
+
+Once the exact existing image paths are identified, inspect only the partitions
+needed for the keyboard stack:
+
+- `vendor_dlkm` / `system_dlkm` for kernel modules;
+- `dtbo`, `vendor_boot`, and any extracted DTB for device-tree properties;
+- `vendor`, `system_ext`, and `product` only for targeted vendor
+  framework/APK/JAR ownership;
+- static `.kl/.kcm/.idc` files if already unpacked.
+
+`tools/t2-ota-keyboard-inspect.sh` remains available for a later isolated
+analysis pass, but it should not be pointed at a raw multi-gigabyte OTA while
+the Pixel build is resource-sensitive.
+
 Raw OTA images, payloads, extracted partitions and module binaries stay only in
-the existing gitignored private artifact tree on `ai-g732`. Commit only
-normalized conclusions.
+the private artifact tree on `ai-g732`. Commit only normalized conclusions.
 
