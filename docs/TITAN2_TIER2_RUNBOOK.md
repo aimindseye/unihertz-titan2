@@ -51,6 +51,19 @@ script rather than assuming a generic `REPORT.txt` filename.
 | N0 matrix | `docs/TITAN2_N0_ACCEPTANCE_MATRIX.md` | stock evidence vs first-Sable acceptance tracking |
 | manual stock parity worksheet | `docs/TITAN2_TIER2_STOCK_BASELINE_WORKSHEET.md` | functional observations that dumps cannot prove |
 
+## Current gate status — 2026-09-25
+
+```text
+E0 restore verification      PASS
+E1 bootloader preflight      PASS
+E2 fastbootd / LP preflight PASS
+E3 Sable artifact preflight PENDING
+```
+
+The validated fastbootd state is slot `a`, unlocked, no active snapshot update,
+and `super=0x240000000` (9 GiB). The next mutation-independent step is the
+exact Sable `system.img` artifact preflight.
+
 ## Phase 1 — stock runtime baseline
 
 With Android stock booted:
@@ -128,7 +141,7 @@ fastboot devices
 Set the fastboot serial explicitly and capture:
 
 ```bash
-export TITAN_FASTBOOT_SERIAL="<Titan fastboot serial>"
+export TITAN_FASTBOOT_SERIAL="$Titan2"
 bash tools/t2-tier2-fastboot-preflight.sh bootloader
 ```
 
