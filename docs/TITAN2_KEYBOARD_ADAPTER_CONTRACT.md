@@ -10,9 +10,9 @@ copying current stock UX assignments.
 
 | Function | Stable identity | Driver / parent | Wake capability | Sable requirement |
 | --- | --- | --- | --- | --- |
-| physical key matrix | `TitanKey`, I2C `6-0058` | exact bound driver: `/sys/bus/i2c/drivers/TitanKey`; DT candidate `aw9523b_led@58` with `aw9523b,key` child; loaded `aw9523_key` remains the likely module implementing the driver | InputManager says non-waking; runtime matrix goes quiet screen-off | preserve raw key matrix and deliberate suspend behavior |
-| keyboard capacitive surface | `touchPad`, I2C `2-0020` | exact bound driver: `/sys/bus/i2c/drivers/synaptics_dsx_pad`; DT/module naming remains to reconcile | non-waking in InputManager | preserve raw ABS_MT stream independently of Mouse Mode |
-| upper programmable side key | `mtk-pmic-keys`, scan 249 | exact platform driver: `/sys/bus/platform/drivers/mtk-pmic-keys`; DT node `mt6363keys` | raw path remains active screen-off and stock policy can wake rear display | preserve independent side-key path; implement wake policy deliberately |
+| physical key matrix | `TitanKey`, I2C `6-0058` | exact driver `/sys/bus/i2c/drivers/TitanKey` -> exact kernel module `/sys/module/aw9523_key`; DT node `aw9523b_led@58` with `aw9523b,key` child | InputManager says non-waking; runtime matrix goes quiet screen-off | preserve raw key matrix and deliberate suspend behavior |
+| keyboard capacitive surface | `touchPad`, I2C `2-0020` | exact driver `/sys/bus/i2c/drivers/synaptics_dsx_pad` -> exact kernel module `/sys/module/synaptics_1403_touch`; DT naming still needs property-level reconciliation | non-waking in InputManager | preserve raw ABS_MT stream independently of Mouse Mode |
+| upper programmable side key | `mtk-pmic-keys`, scan 249 | exact platform driver `/sys/bus/platform/drivers/mtk-pmic-keys` -> exact kernel module `/sys/module/mtk_pmic_keys`; DT node `mt6363keys` | raw path remains active screen-off and stock policy can wake rear display | preserve independent side-key path; implement wake policy deliberately |
 | lower programmable side key | `gpio_key-func`, scan 250 | virtual input path; exact producer still unresolved | raw path remains active screen-off; no display wake in tested stock state | preserve independent side-key path |
 | hardware volume keys | `gpio-keys` | exact platform driver: `/sys/bus/platform/drivers/gpio-keys`; DT has `volumeup` / `volumedown` children | stock wake semantics can be handled separately | preserve standard Linux key path |
 | synthetic helper | `ff_key`, virtual input device | producer still unresolved | non-waking in InputManager | preserve only if required after producer/consumer mapping |
@@ -35,19 +35,17 @@ Do not hard-code event numbers.
 The static-map plus targeted driver-inspection pass resolves several previously
 inferred boundaries:
 
-- `TitanKey` is rooted at I2C address `6-0058` and is bound exactly to the
-  I2C driver named `TitanKey`. The device tree exposes
-  `aw9523b_led@58` with explicit `aw9523b,key`, `aw9523b,led` and GPIO
-  children, while the loaded `aw9523_key` module remains the likely module
-  implementing that driver.
-- `touchPad` is rooted at I2C address `2-0020` and is bound exactly to the
-  I2C driver `synaptics_dsx_pad`. This corrects the earlier module-name
-  inference: the loaded `hynitron_touchpad` module cannot be treated as the
-  touchPad driver without further evidence. DT candidates under the same I2C
-  controller still need property-level inspection to reconcile the naming.
-- `mtk-pmic-keys` is bound to the exact platform driver
-  `mtk-pmic-keys`; DT exposes `mt6363keys` children including `power`,
-  `home` and `home2`.
+- `TitanKey` is rooted at I2C address `6-0058`, bound to the I2C driver
+  `TitanKey`, and that driver resolves exactly to kernel module `aw9523_key`.
+  DT exposes `aw9523b_led@58` with `aw9523b,key`, `aw9523b,led`, and GPIO
+  children.
+- `touchPad` is rooted at I2C address `2-0020`, bound to driver
+  `synaptics_dsx_pad`, and that driver resolves exactly to kernel module
+  `synaptics_1403_touch`. This supersedes the earlier inference from the loaded
+  `hynitron_touchpad` module. DT naming still needs property-level inspection.
+- `mtk-pmic-keys` is bound to platform driver `mtk-pmic-keys`, which resolves
+  exactly to kernel module `mtk_pmic_keys`; DT exposes `mt6363keys` children
+  including `power`, `home`, and `home2`.
 - standard volume keys are bound through the exact platform driver
   `gpio-keys`; DT exposes `volumeup` and `volumedown`.
 - `gpio_key-func` and `ff_key` still appear through virtual sysfs roots, so
@@ -130,8 +128,8 @@ The first keyboard adapter should prove:
 
 The first static pass substantially narrowed the unknowns. Next resolve:
 
-- map the exact module/object behind I2C driver name `TitanKey` (likely `aw9523_key`) and reconcile `synaptics_dsx_pad` with the loaded touch modules;
 - exact producer for virtual `ff_key` and `gpio_key-func`;
+- property-level DT mapping for the `synaptics_dsx_pad` / `synaptics_1403_touch` touchPad path;
 - parent wakeup/runtime-PM attributes for the matrix, touchPad and side-key paths;
 - distinguish top-level `keypad_led` from AW9523 `aw9523b,led` and identify the user-visible keyboard-backlight control path/value range;
 - inspect DT properties for `aw9523b_led@58`, `keypad_led`, touchPad candidates and `mt6363keys`;
