@@ -23,6 +23,21 @@ SubScreen reverse engineering.
 - Do not infer fastbootd state from the UI. Require
   `getvar is-userspace: yes`.
 
+### Report naming convention
+
+Every Tier 2 helper writes a uniquely named report containing the UTC timestamp
+and analysis label, for example:
+
+```text
+REPORT-20260925T220000Z-stock-pre-n0-runtime.txt
+REPORT-20260925T220500Z-restore-verify.txt
+REPORT-20260925T221000Z-bootloader-fastboot-preflight.txt
+```
+
+This avoids collisions when reports are downloaded or attached outside their
+already-unique artifact directories. Use the exact report path printed by the
+script rather than assuming a generic `REPORT.txt` filename.
+
 ## Deliverables
 
 | Deliverable | Tool / document | Result |
