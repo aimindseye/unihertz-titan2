@@ -16,7 +16,7 @@ fi
 
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT="$ROOT/artifacts/private/t2-tier2/$STAMP-stock-vs-sable-runtime"
-REPORT="$OUT/REPORT.txt"
+REPORT="$OUT/REPORT-${STAMP}-stock-vs-sable-runtime.txt"
 mkdir -p "$OUT/diffs"
 
 pairs=(
