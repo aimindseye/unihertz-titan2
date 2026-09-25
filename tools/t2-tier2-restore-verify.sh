@@ -8,6 +8,7 @@ OUT="$ROOT/artifacts/private/t2-tier2/$STAMP-restore-verify"
 REPORT="$OUT/REPORT.txt"
 HASHES="$OUT/RESTORE_SHA256SUMS.txt"
 mkdir -p "$OUT"
+: > "$HASHES"
 
 SEARCH_DIRS=(
   "$EQ_ROOT/TEE13-source"
