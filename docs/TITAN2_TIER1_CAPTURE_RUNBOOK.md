@@ -277,35 +277,49 @@ Target behaviors:
 - SubScreen lifecycle/input/security;
 - Kika integration.
 
-## Phase 7 — remaining navigation and camera-shutter candidates
+## Phase 7 — targeted runtime navigation (optional)
 
-After Sections B-D core work, use the guided remaining-keys helper:
+The broad navigation sweep is no longer a Tier 1 blocker. The latest run showed
+that user-visible Home/Recents behavior can be stock-policy/configuration
+dependent above the Linux input layer. Keep `tools/section-a-nav-shutter-capture.sh`
+and `tools/section-a-final-navigation.sh` only for a specific unresolved runtime
+question; do not exhaustively retest configurable stock assignments.
+
+Volume Up/Down are already sufficient conventional stock-Camera shutter
+candidates for the current Sable Camera contract.
+
+## Phase 8 — keyboard static-stack map
+
+This is the next required keyboard deliverable:
 
 ```bash
 export TITAN_SERIAL="$Titan2"
-bash tools/section-a-nav-shutter-capture.sh
+bash tools/t2-keyboard-static-map.sh
+bash tools/t2-keyboard-static-summary.sh
 ```
 
-It keeps each capture isolated and records Linux events, Input Probe delivery,
-focused-task changes and operator-visible behavior for Back/Home/Recents
-candidates, navigation/cursor candidates and stock-Camera shutter candidates.
-Printed labels are treated only as physical prompts; Android semantics are
-assigned from captured evidence.
+The first helper is read-only and captures the stable stack around the known
+keyboard/input devices: Linux capabilities, sysfs device/driver/bus/wakeup
+relationships, static `.kl/.kcm/.idc` content, relevant properties, package
+ownership and device-tree candidate nodes. The second helper prints a reviewed
+summary suitable for sharing while raw evidence remains private.
+
+Use `docs/TITAN2_KEYBOARD_STATIC_STACK_PLAN.md` as the session plan and fill
+`docs/TITAN2_KEYBOARD_ADAPTER_CONTRACT.md` from the results.
 
 ## Section A completion requirement
 
-Section A is complete only after a normalized table can connect:
+Section A is complete when the Sable adapter contract can distinguish stable hardware/framework behavior from replaceable stock policy. The normalized table should connect:
 
 ```text
-Linux device
-  -> scan code / EV_KEY
-  -> .kl mapping
-  -> Android KeyEvent keyCode/meta state
-  -> .kcm / IME behavior
-  -> focused app behavior
+hardware / bound driver
+  -> Linux input device + scan code / EV_KEY / ABS stream
+  -> .kl / .kcm / .idc translation
+  -> vendor framework interception/synthesis where required
+  -> Sable adapter responsibility
 ```
 
-for the important Titan 2 keys and context variants.
+Representative runtime tests remain evidence for modifiers, repeat, wake and app delivery, but configurable stock UX assignments do not need exhaustive coverage.
 
 ## Section B completion requirement
 
