@@ -1,6 +1,6 @@
 # Titan 2 keyboard adapter contract — draft
 
-Status: **static-stack capture substantially complete; DTBO/module attribution refinement in progress**
+Status: **core keyboard hardware contract complete; residual synthetic/policy attribution remains**
 
 This document is the implementation-facing output of the Titan 2 keyboard
 research. It should be filled from `t2-keyboard-static-map.sh` evidence, not by
@@ -13,10 +13,10 @@ copying current stock UX assignments.
 | physical key matrix | `TitanKey`, I2C `6-0058` | exact driver `/sys/bus/i2c/drivers/TitanKey` -> module `aw9523_key`; DTBO sets `matrix_key_enable=1`, `single_key_enable=0`, `led_enable=0`, `gpio_enable=0` | node is `wakeup-source`, but key child sets `wake_up_enable=0`; `wakeup_key=57`, matching the tested Space scan code, so stock screen-off non-wake is statically explained | preserve raw matrix and explicitly choose Sable wake policy |
 | keyboard capacitive surface | `touchPad`, I2C `2-0020` | exact driver `/sys/bus/i2c/drivers/synaptics_dsx_pad` -> exact kernel module `/sys/module/synaptics_1403_touch`; DT naming still needs property-level reconciliation | non-waking in InputManager | preserve raw ABS_MT stream independently of Mouse Mode |
 | upper programmable side key | scan 249 / Func1 | DT `mt6363keys/home` sets `linux,keycodes=249` and `wakeup-source`; runtime exposes Func1 on `mtk-pmic-keys` | raw path remains active screen-off and stock policy can wake rear display | preserve independent side-key path; implement wake/presentation policy deliberately |
-| lower programmable side key | scan 250 / Func2 | DT `mt6363keys/home2` sets `linux,keycodes=250` and `wakeup-source`; runtime also exposes scan 250 through virtual `gpio_key-func`, so the secondary producer/reroute still needs attribution | raw path remains active screen-off; no display wake in tested stock state | preserve independent side-key path; do not copy stock no-op policy |
+| lower programmable side key | `gpio_key-func`, scan 250 / Func2 | exact producer module `gpio_key.ko`; module description `agold gpio key`; DT also contains enabled `agold_gpio_key` (`compatible=mediatek,agold_gpio_key`, GPIO/IRQ 73). PMIC `home2` independently advertises keycode 250 but is not the observed runtime Func2 event source | raw `gpio_key-func` path remains active screen-off; module registers a wakeup source; stock policy does not visibly wake a display | preserve the `gpio_key.ko` side-key path and choose Sable wake/action policy deliberately |
 | hardware volume keys | `gpio-keys` | exact platform driver: `/sys/bus/platform/drivers/gpio-keys`; DT has `volumeup` / `volumedown` children | stock wake semantics can be handled separately | preserve standard Linux key path |
-| synthetic helper | `ff_key`, virtual input device | producer still unresolved | non-waking in InputManager | preserve only if required after producer/consumer mapping |
-| keyboard illumination | dedicated keypad-light stack | AW9523 parent explicitly sets `led_enable=0`; separate DTBO node `compatible=agold,keypad-led`, `min_brightness=8`, `pwm_ch=2`; vendor DLKM contains `keypad_led.ko` and prior module graph shows `mtk_pwm` dependency | n/a | treat `keypad_led`/PWM as the stock physical keyboard-light backend; expose Sable-owned brightness/timeout policy |
+| synthetic helper | `ff_key`, virtual input device | producer unresolved; exact-name scan across extracted V01.00.13 vendor-DLKM modules found no `ff_key` owner | non-waking in InputManager | preserve only if required after consumer mapping; do not block first adapter on it |
+| keyboard illumination | dedicated keypad-light stack | AW9523 parent sets `led_enable=0`; DTBO `compatible=agold,keypad-led`, `min_brightness=8`, `pwm_ch=2`; exact module `keypad_led.ko` describes itself as `Keypad LED PWM Driver`, depends on `mtk-pwm,mtk_disp_notify`, and exports sysfs attribute `keyled_brightness` | n/a | use the `keypad_led` PWM backend; locate/document the runtime `keyled_brightness` path and expose Sable-owned brightness/timeout policy |
 
 Do not hard-code event numbers.
 
@@ -48,13 +48,14 @@ inferred boundaries:
   including `power`, `home`, and `home2`.
 - standard volume keys are bound through the exact platform driver
   `gpio-keys`; DT exposes `volumeup` and `volumedown`.
-- `gpio_key-func` and `ff_key` still appear through virtual sysfs roots, so
-  their exact producer remains the main unresolved side-key/synthetic-key
-  question.
-- keyboard illumination has two concrete DT-level candidates: a top-level
-  `keypad_led` node and the AW9523 device's `aw9523b,led` children. The
-  loaded `keypad_led` module uses MediaTek PWM, but current evidence does not
-  yet prove which path corresponds to the user-visible keyboard backlight.
+- `gpio_key-func` is produced by `gpio_key.ko`; its module strings include the
+  exact input-device name and wakeup-source plumbing. The enabled
+  `agold_gpio_key` DT node is the matching board-level GPIO-key candidate.
+  `ff_key` remains unresolved and was not found as an exact input name in any
+  extracted vendor-DLKM module.
+- keyboard illumination is owned by `keypad_led.ko`, a dedicated `Keypad LED
+  PWM Driver` depending on `mtk-pwm` and `mtk_disp_notify`; it exports
+  `keyled_brightness`. AW9523 LED mode is disabled by DT on this board.
 - `mtk_disp_notify` is referenced by keyboard/touch/light modules in the
   loaded-module graph. That remains consistent with the runtime display-power
   coupling, but exact callback logic is not yet proven.
@@ -71,14 +72,17 @@ The decoded DTBO values close several of those questions:
   the Linux scan code observed for Space. This statically explains why Space /
   the matrix did not wake the handset in the tested stock screen-off state.
 - `mt6363keys/home` and `home2` carry Linux keycodes 249 and 250 respectively
-  and both are marked `wakeup-source`. Those values line up exactly with the
-  Func1/Func2 scan codes already observed at runtime. The physical side-key
-  source is therefore in the PMIC key block; the separate runtime
-  `gpio_key-func` device for scan 250 should be treated as a secondary
-  exposed/synthetic path until its producer is attributed.
+  and both are marked `wakeup-source`. Runtime confirms Func1 through the
+  PMIC path. For Func2, the later EROFS/module pass supersedes the earlier PMIC
+  inference: `gpio_key.ko` contains the exact runtime input name
+  `gpio_key-func` and wakeup-source code, matching the enabled
+  `agold_gpio_key` DT node. Treat PMIC `home2=250` as a parallel advertised
+  capability, not as the proven runtime Func2 producer.
 - the dedicated `keypad_led` overlay is `compatible=agold,keypad-led`, with
-  `min_brightness=8` and `pwm_ch=2`. Because AW9523 LED mode is disabled,
-  this is now the strong stock backend for the physical keyboard backlight.
+  `min_brightness=8` and `pwm_ch=2`. `keypad_led.ko` confirms this backend:
+  description `Keypad LED PWM Driver`, dependencies `mtk-pwm,mtk_disp_notify`,
+  and exported sysfs attribute `keyled_brightness`. Because AW9523 LED mode is
+  disabled, this is the stock physical keyboard-backlight path.
 - the Hynitron overlay entries use 410x502 display coordinates, reinforcing
   that those nodes belong to the rear SubScreen touch path rather than the
   keyboard capacitive surface.
@@ -97,14 +101,14 @@ The decoded DTBO values close several of those questions:
   `wakeup-source` among the keyboard-focused strings. The AW9523 and
   `keypad_led` configuration is therefore board-overlay evidence from
   `dtbo.img`, not merely a string observed in the base vendor DTB.
-- `vendor_dlkm.img` is EROFS and contains the expected keyboard/input modules,
-  including `aw9523_key.ko`, `synaptics_1403_touch.ko`,
-  `hynitron_touchpad.ko`, `gpio_key.ko`, and `keypad_led.ko`.
-  It also contains the literal runtime names `TitanKey` and
-  `touchPad/input0`. Attribution of those literals to individual modules
-  requires extracting only the small EROFS vendor-DLKM image.
-- the prior `debugfs` listing attempt is invalid for these DLKM images because
-  they are EROFS, not ext4. Future module extraction must use EROFS-aware tools.
+- EROFS extraction of `vendor_dlkm.img` attributes the active names directly:
+  `aw9523_key.ko` contains `TitanKey`; `synaptics_1403_touch.ko` contains
+  `synaptics_dsx_pad`, `touchPad`, and `touchPad/input0`; and `gpio_key.ko`
+  contains `gpio_key-func`. `hynitron_touchpad.ko` also contains generic
+  `touchPad` strings, but the live I2C binding proves that the active keyboard
+  surface is `synaptics_1403_touch`, not Hynitron.
+- the prior `debugfs` attempt was invalid because DLKM images are EROFS. The
+  corrected EROFS extraction completed successfully.
 
 Stock properties also expose the policy split:
 
@@ -175,11 +179,11 @@ The first keyboard adapter should prove:
 
 The first static pass substantially narrowed the unknowns. Next resolve:
 
-- exact producer for virtual `ff_key` and `gpio_key-func`;
-- after the Pixel build is no longer resource-sensitive, optionally extract only the 18 MiB V01.00.13 `vendor_dlkm.img` with EROFS-aware tooling to attribute `ff_key` / `gpio_key-func` names to individual modules;
-- property-level DT mapping for the `synaptics_dsx_pad` / `synaptics_1403_touch` keyboard touchPad path if needed for the first adapter;
-- exact vendor mapping from user-facing keyboard-light slider values to the `keypad_led` PWM backend, only if implementation requires matching stock levels;
-- whether vendor key 404 is synthesized by a kernel/input producer or framework code.
+- producer/consumer role of `ff_key`; it was not found as an exact input-device name in the extracted vendor-DLKM modules and is non-blocking for the first adapter;
+- exact DT origin for the active `synaptics_dsx_pad` / `synaptics_1403_touch` keyboard surface, only if required for Sable device-tree work;
+- runtime sysfs path and accepted range/semantics of `keyled_brightness`; the backend itself is now identified;
+- exact stock UI slider-to-`keyled_brightness` mapping, only if matching stock levels is desirable;
+- whether vendor key 404 is synthesized in kernel/native/framework code.
 
 If any field remains vendor-private after static inspection, record the boundary
 and defer deeper reverse engineering unless it blocks the first Sable adapter.
