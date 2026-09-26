@@ -19,7 +19,7 @@ unproven until an actual Sable artifact is deployed.
 | cellular data | **AUTOMATED CAPTURED / MANUAL PENDING** — telephony service state saved; functional data test still required | **PENDING** | TBD | TBD |
 | voice / IMS | **AUTOMATED CAPTURED / MANUAL PENDING** — telephony/IMS service state saved; call and IMS behavior still required | **PENDING** | TBD | TBD |
 | SMS / MMS | **AUTOMATED CAPTURED / MANUAL PENDING** — telephony service state saved; send/receive behavior still required | **PENDING** | TBD | TBD |
-| audio | **AUTOMATED CAPTURED / MANUAL PENDING** — audio framework/service state saved; playback/recording/routing behavior still required | **PENDING** | TBD | TBD |
+| audio | **PASS stock non-call baseline** — loudspeaker, microphones, camera-video audio, Bluetooth media/route switching, USB audio input/output, FM and haptics verified; in-call routes remain tracked with telephony/IMS | **PENDING** | TBD | TBD |
 | camera | **PASS normal-app baseline** — public rear/front, high-res JPEG and rear DNG proven; hidden tele/logical topology known | **PENDING** | likely camera device profile; privileged hidden-camera path only if adopted | TBD |
 | fingerprint | **PASS stock baseline** — FocalTech ownership known; FingerprintProvider sensor 5 present; enrollment and manual unlock/authentication verified; 0 HAL deaths observed in captured state | **PENDING** | TBD | TBD |
 | sensors | **PARTIAL** — sensor inventory plus accelerometer, gyroscope, compass and ambient-light behavior verified; proximity behavior remains cross-linked to normal-call testing | **PENDING** | TBD | TBD |
