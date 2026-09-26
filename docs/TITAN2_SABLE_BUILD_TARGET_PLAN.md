@@ -120,12 +120,44 @@ camera
   -> include normal Sable Camera backend for public cameras 0/1
   -> keep hidden SYSTEM_CAMERA work gated until privileged integration
 
+diagnostics
+  -> provide a Sable-owned Titan hardware diagnostics surface
+  -> preserve `*#*#3377#*#*` as a compatibility entry point where technically feasible
+  -> retain equivalent bounded tests for YGPS/GNSS, loudspeaker, receiver,
+     Microphone1/2, vibrator/haptics, accelerometer/gravity, gyro, compass,
+     touch/touchPad, display/backlight and keyboard light
+  -> keep calibration, aging, RF-write or other state-changing factory actions
+     disabled/deferred until ownership and safety are explicitly understood
+  -> do not depend on proprietary stock Factory Test UI being present
+
 build artifacts
   -> exact output paths
   -> SHA-256 manifest
   -> image logical sizes
   -> AVB metadata where present
 ```
+
+## Factory diagnostics preservation contract
+
+The stock Titan 2 retail build exposes Factory Test through the dialer code
+`*#*#3377#*#*`. Physical testing on V01.00.13 verified the YGPS path and the
+Single Test hardware surface, including dedicated microphone and haptics/audio
+checks.
+
+SableOS should retain this capability as a **Sable-owned diagnostics feature**.
+The compatibility goal is:
+
+```text
+TITAN2_DIAGNOSTICS_SURFACE=REQUIRED
+TITAN2_DIAGNOSTICS_DIALER_COMPAT=*#*#3377#*#* where feasible
+TITAN2_DIAGNOSTICS_READ_ONLY_TESTS=REQUIRED
+TITAN2_FACTORY_CALIBRATION_ACTIONS=DEFERRED_UNTIL_REVIEWED
+```
+
+N0 does not require cloning the proprietary stock application. It does require
+preserving practical on-device hardware verification so keyboard-first bring-up
+and later field support do not lose the diagnostics that stock firmware makes
+available.
 
 ## N0 artifact contract
 
