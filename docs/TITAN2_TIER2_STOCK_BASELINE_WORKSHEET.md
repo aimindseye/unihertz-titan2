@@ -96,7 +96,7 @@ needed to interpret it.
 | ambient-light sensor | PASS | manual behavior verified |
 | NFC enable / tag read | PASS | stock NFC feature present; tag read verified |
 | GNSS first fix | PASS | Factory Test -> YGPS exercised; private coordinates not committed |
-| GNSS steady tracking | PENDING | satellite visibility/fix path verified; sustained tracking interval still to be closed |
+| GNSS steady tracking | NOT_TESTED (environment) | indoor test location is not suitable for a reliable sustained-tracking qualification; first-fix/YGPS path is verified |
 | IR transmit | PASS | android.hardware.consumerir advertised and manual transmit behavior verified |
 | USB OTG storage | PASS | manual OTG storage behavior verified |
 | USB OTG HID | PASS | manual OTG HID behavior verified |
@@ -148,7 +148,7 @@ proximity_behavior=PENDING
 ambient_light_behavior=PASS
 nfc_tag_read=PASS
 gnss_first_fix=PASS
-gnss_steady_tracking=PENDING
+gnss_steady_tracking=NOT_TESTED_ENVIRONMENT
 ir=PASS
 usb_otg_storage=PASS
 usb_otg_hid=PASS
@@ -162,8 +162,7 @@ MUTATION_LEVEL=USER_SETTING_CHANGE
 PRIVATE_IDENTIFIERS_REDACTED=YES
 ```
 
-K becomes PASS after the deferred proximity behavior and steady GNSS tracking
-checks are both closed with evidence.
+K remains PARTIAL because proximity behavior is deferred to the normal-call test in I and sustained GNSS tracking was not run in a suitable RF environment. This is an evidence gap, not a recorded GNSS failure.
 
 ## J. Audio / haptics
 
