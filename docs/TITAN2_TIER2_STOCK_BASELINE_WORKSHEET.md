@@ -85,24 +85,34 @@ needed to interpret it.
 
 | Test | Result | Notes |
 | --- | --- | --- |
-| fingerprint HAL/service inventory | PENDING | correlate with saved security/sensor runtime evidence |
-| fingerprint enroll | PENDING | |
-| fingerprint unlock/authenticate | PENDING | |
-| sensorservice inventory | PENDING | correlate with saved sensor runtime evidence |
-| accelerometer | PENDING | |
-| gyroscope | PENDING | |
-| compass / magnetometer | PENDING | |
-| proximity sensor | PENDING | |
-| ambient-light sensor | PENDING | |
-| NFC enable / tag read | PENDING / NOT_AVAILABLE | |
-| GNSS first fix | PENDING | redact private location data |
-| GNSS steady tracking | PENDING | record behavior, not private route history |
-| IR transmit | PENDING / NOT_PRESENT / UNKNOWN | |
-| USB OTG storage | PENDING / NOT_TESTED | |
-| USB OTG HID | PENDING / NOT_TESTED | |
+| fingerprint HAL/service inventory | PASS | FingerprintProvider sensor 5 present; post-enrollment count=1; 0 HAL deaths observed |
+| fingerprint enroll | PASS | one fingerprint enrolled successfully on stock V01.00.13 |
+| fingerprint unlock/authenticate | PASS | manual stock authentication/unlock verified |
+| sensorservice inventory | PASS | accelerometer, magnetometer, gyroscope, ambient-light and proximity sensors enumerated |
+| accelerometer | PASS | manual behavior verified |
+| gyroscope | PASS | manual behavior verified |
+| compass / magnetometer | PASS | manual behavior verified |
+| proximity sensor | PENDING | defer final behavior check to normal voice-call test in Tier 2 I |
+| ambient-light sensor | PASS | manual behavior verified |
+| NFC enable / tag read | PASS | stock NFC feature present; tag read verified |
+| GNSS first fix | PASS | Factory Test -> YGPS exercised; private coordinates not committed |
+| GNSS steady tracking | PENDING | satellite visibility/fix path verified; sustained tracking interval still to be closed |
+| IR transmit | PASS | android.hardware.consumerir advertised and manual transmit behavior verified |
+| USB OTG storage | PASS | manual OTG storage behavior verified |
+| USB OTG HID | PASS | manual OTG HID behavior verified |
 
 The fingerprint `ff_key` gesture helper is already attributed to the FocalTech
 kernel stack, but that does not substitute for biometric authentication testing.
+
+Verified stock diagnostic entry on the tested retail unit:
+
+```text
+Dialer: *#*#3377#*#*
+Factory Test -> YGPS
+```
+
+This is now retail-device evidence, not merely a community test lead. Use YGPS
+for bounded GNSS observation without committing coordinates or route history.
 
 Minimum normalized K detail:
 
@@ -124,6 +134,36 @@ usb_otg_hid=PASS|FAIL|NOT_TESTED
 
 TITAN2_TIER2_K_STOCK_BASELINE=PASS|PARTIAL
 ```
+
+Current normalized K status (2026-09-26):
+
+```text
+fingerprint_enroll_unlock=PASS
+fingerprint_hal_inventory=PASS
+sensorservice_inventory=PASS
+accelerometer_behavior=PASS
+gyro_behavior=PASS
+compass_behavior=PASS
+proximity_behavior=PENDING
+ambient_light_behavior=PASS
+nfc_tag_read=PASS
+gnss_first_fix=PASS
+gnss_steady_tracking=PENDING
+ir=PASS
+usb_otg_storage=PASS
+usb_otg_hid=PASS
+
+TITAN2_TIER2_K_STOCK_BASELINE=PARTIAL
+
+BUILD=Titan 2_V01.00.13
+ACTIVE_SLOT=a
+LOCK_STATE=unlocked
+MUTATION_LEVEL=USER_SETTING_CHANGE
+PRIVATE_IDENTIFIERS_REDACTED=YES
+```
+
+K becomes PASS after the deferred proximity behavior and steady GNSS tracking
+checks are both closed with evidence.
 
 ## J. Audio / haptics
 
