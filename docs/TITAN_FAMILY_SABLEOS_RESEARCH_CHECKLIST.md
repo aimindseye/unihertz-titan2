@@ -35,7 +35,7 @@ V01.00.13 evidence. Titan 2 Elite remains an independent target.
 | Tier 2 I. Telephony / IMS | **PARTIAL — tested single-SIM LTE/IMS path healthy** | SIM recognition, mobile data, LTE, normal incoming/outgoing voice, SMS/MMS, IMS, VoLTE, VoWiFi, earpiece/loudspeaker/Bluetooth call audio and proximity behavior are verified. Remaining gaps are 5G NSA/SA mode qualification and dual-SIM behavior. |
 | Tier 2 J. Audio | **PASS stock non-call baseline** | Loudspeaker, primary/secondary microphones, camera-video audio, Bluetooth media + route switching, USB audio input/output, FM and haptics are manually verified. In-call receiver/loudspeaker/Bluetooth routing remains intentionally cross-linked to Tier 2 I rather than J. |
 | Tier 2 M. Wi-Fi / Bluetooth | **PASS stock connectivity baseline** | Wi-Fi scan/connect, reconnect after toggle and sleep, roam, Bluetooth pair/reconnect, media and HID are verified. Hotspot/tethering is deliberately deferred because it is not required for the current N0 baseline. |
-| Tier 2 D2-lite. Notifications / attention | **PARTIAL — only notification haptic routing remains** | Lockscreen redaction, dismiss, inline reply, keyboard reachability, rear SubScreen notification output and notification audio are verified. Keyboard-backlight notification output, status LED and AOD are not present. Notification-specific haptic routing was not configured in this test and remains the only D2-lite evidence gap. |
+| Tier 2 D2-lite. Notifications / attention | **PASS stock bounded baseline** | Lockscreen redaction, dismiss, inline reply, keyboard reachability, rear SubScreen notification output, notification audio and notification haptics are verified. Notification-driven keyboard backlight, status LED and AOD are not present in the tested stock configuration. |
 | Tier 2 K. Fingerprint, sensors, NFC and GNSS | **PARTIAL — only GNSS steady tracking deferred** | Fingerprint enrollment/authentication, HAL inventory, accelerometer, gyroscope, compass, proximity, ambient light, NFC tag read, GNSS first fix, IR transmit and USB OTG storage/HID are verified. Sustained GNSS tracking remains environment-limited indoors and is not recorded as a failure. |
 | Tier 2 L. Power / thermal / suspend | **PARTIAL — deep idle, wake and thermal/Health healthy** | Natural deep-idle entry, Power-button wake, keyboard/SubScreen wake behavior, thermal HAL and Health/battery evidence are verified. No distinct stock alternate charging mode or charge-limit/battery-health charging policy was found; Battery Saver's 90% option controls Battery Saver itself, not charging. Below-full USB charge progression remains unqualified and bounded throttling is intentionally deferred. |
 | Acceptance matrix | **PARTIAL** | Stock evidence can now be filled for boot feasibility, display/touch, keyboard/pointer/IME, SubScreen and normal-app camera. Every **First Sable N0** cell remains unproven until a Sable artifact is actually deployed. |
@@ -54,9 +54,9 @@ The next highest-value work is:
    bounded Sable N0 experiment;
 3. use that boot to populate the first-Sable side of the acceptance matrix and
    drive only evidence-based follow-up;
-4. complete the manual stock telephony/audio/sensors/power worksheet against the
-   saved `stock-pre-n0` automated runtime baseline before those subsystems are
-   needed for N0 parity;
+4. use the completed bounded stock manual baselines as the parity reference for
+   first-Sable N0; retain the documented environment-/coverage-limited PARTIAL
+   items without blocking the first build/boot;
 5. keep Titan 2 Elite entirely pending until the physical unit can be qualified
    independently.
 
@@ -71,7 +71,7 @@ For the remaining **manual stock** session work, use the bounded execution order
 ```
 
 Run passive L charging/thermal/idle observations during K/J/I where useful; save
-the explicit bounded sustained-load/throttling check for last. M connectivity is complete. D2-lite is also captured; only notification-specific haptic routing remains to close that bounded stock baseline. Do not
+the explicit bounded sustained-load/throttling check for last. M connectivity and D2-lite notification/attention baselines are complete. No further bounded stock-side manual research is required before the Titan 2 Sable build-target/N0 path. Do not
 turn either into another broad reverse-engineering pass.
 
 ## Evidence discipline
