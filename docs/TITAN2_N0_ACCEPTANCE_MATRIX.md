@@ -14,8 +14,8 @@ unproven until an actual Sable artifact is deployed.
 | keyboard pointer / touch surface | **PASS baseline** — separate Synaptics ABS_MT touchPad; stock Mouse Keys is framework policy | **PENDING** | **YES** — classify/preserve touchPad independently | TBD |
 | IME / text entry | **PASS baseline** — base character/modifier behavior known; Kika-specific composition is replaceable | **PENDING** | device keymap/KCM may be needed; Kika dependency must not be required | TBD |
 | rear SubScreen | **PASS baseline** — 410x502 display, rear touch, lifecycle, wake, rotation, brightness independence and security/group behavior mapped | **PENDING** | **YES** — Titan-specific secondary-display/presentation profile | TBD |
-| Wi-Fi | **AUTOMATED CAPTURED** — final stock runtime network/service state saved; functional behavior not promoted to PASS by this capture alone | **PENDING** | TBD | TBD |
-| Bluetooth | **AUTOMATED CAPTURED** — final stock runtime network/service state saved; functional behavior not promoted to PASS by this capture alone | **PENDING** | TBD | TBD |
+| Wi-Fi | **PASS stock baseline** — scan/connect, reconnect after radio toggle and short sleep, and roam behavior verified | **PENDING** | TBD | TBD |
+| Bluetooth | **PASS stock baseline** — pairing, reconnect, media playback and HID behavior verified | **PENDING** | TBD | TBD |
 | cellular data | **PASS tested LTE baseline** — SIM recognized, mobile data and LTE registration verified; 5G NSA/SA modes not qualified in this session | **PENDING** | TBD | TBD |
 | voice / IMS | **PASS tested single-SIM baseline** — incoming/outgoing voice, IMS, VoLTE, VoWiFi and earpiece/loudspeaker/Bluetooth call routes verified; dual-SIM not tested | **PENDING** | TBD | TBD |
 | SMS / MMS | **PASS stock baseline** — SMS and MMS send/receive verified | **PENDING** | TBD | TBD |
