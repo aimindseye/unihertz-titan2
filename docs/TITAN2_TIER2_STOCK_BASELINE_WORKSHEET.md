@@ -1,6 +1,11 @@
 # Titan 2 Tier 2 stock functional baseline worksheet
 
-Status: **stock baseline bounded work complete — K/J/I/L classified; M PASS; D2-lite PASS**
+Status: **TIER 2 COMPLETE — bounded stock baseline closed; K/J/I/L classified; M PASS; D2-lite PASS**
+
+Tier 2 completion interpretation: the bounded stock qualification is closed even
+though K/I/L retain explicit PARTIAL classifications for environment-, carrier-,
+or deliberately deferred observations. Those entries are preserved as evidence
+limitations and do not mean Tier 2 remains open.
 
 The automated Tier 2 collector records framework/HAL/service state. This
 worksheet captures user-visible behavior that static dumps cannot prove.
