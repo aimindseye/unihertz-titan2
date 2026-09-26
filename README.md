@@ -6,38 +6,59 @@ For research that directly feeds SableOS Titan 2 / Titan 2 Elite device
 adapters, keyboard-first UI and N0 acceptance, use:
 
 - [Titan family SableOS research checklist](docs/TITAN_FAMILY_SABLEOS_RESEARCH_CHECKLIST.md)
+- [SableOS Treble portability handoff](docs/SABLEOS_TREBLE_PORTABILITY_HANDOFF.md)
 - [Camera research](docs/CAMERA_RESEARCH.md)
 - [Physical-keyboard app research](docs/KEYBOARD_APP_RESEARCH.md)
 - [SableOS bring-up contract](docs/SABLEOS_BRINGUP_CONTRACT.md)
 
-The checklist prioritizes input-event mapping, display/input topology, stock
-keyboard/SubScreen ownership and an independent Titan 2 Elite factory baseline
-before additional broad firmware reverse engineering.
-
-
-Bounded device research for a future SableOS Titan 2 bring-up, plus focused application research for physical-keyboard phones.
+The Titan 2 research track has answered the bounded safety and ownership
+questions needed to start SableOS N0_A16 build-target work. Further work should
+focus on artifact build, E3 preflight and first-Sable acceptance rather than
+another broad stock reverse-engineering pass.
 
 ## Status
 
-**Core Titan 2 boot/firmware research closed on 2026-09-22. SableOS bring-up is intentionally deferred until SableOS Release 9 validation on the Pixel 7 is complete.**
+**Titan 2 bounded research is closed for SableOS N0_A16 planning. No SableOS image has been flashed to the Titan 2 yet.**
 
 ```text
 T2-R0  Factory baseline                         CLOSED
 T2-R1  Firmware + partition + recovery closure CLOSED
 T2-R2  Bootloader / AVB / GSI feasibility      CLOSED
 T2-R3  SableOS feasibility decision            GO / CLOSED
+T2-R4  Keyboard/display/SubScreen ownership    CLOSED_FOR_N0
 
 STOP BROAD DEVICE RESEARCH
 
-Parallel work allowed:
-  focused camera-app research
-  focused physical-keyboard app research
-
-OS bring-up resumes after:
-  SableOS 9 validation on Pixel 7
+SableOS next step:
+  TITAN2_N0_A16 build-target strategy
+  -> AOSP16 clean ARM64 GSI substrate qualification
+  -> Sable-owned system.img build
+  -> E3 artifact preflight
+  -> first bounded deployment only after explicit gate approval
 ```
 
-No SableOS image has been flashed to the Titan 2 yet.
+## SableOS strategy summary
+
+Titan 2 enters SableOS through the Treble portability lane, not the Pixel
+reference lane.
+
+```text
+DEVICE=titan2
+SABLE_RELEASE=R10 planning line
+TITAN_RELEASE_ID=N0_A16
+ANDROID_RELEASE=16
+PLATFORM_SDK=36
+ARTIFACT_KIND=gsi-system-image
+FIRST_SUBSTRATE=AOSP16_CLEAN_GSI
+RESTLESSOS_ROLE=REFERENCE_AND_FUTURE_FORK
+FIRST_SABLE_ARTIFACT=ABSENT
+FIRST_SABLE_BOOT=NOT_RUN
+```
+
+RestlessOS is a MediaTek/Treble reference and possible future fork, but it is
+not the first Titan 2 boot dependency. The first Titan 2 build should isolate
+stock vendor/kernel/firmware compatibility before adding RestlessOS policy or
+hardening variables.
 
 ## Proven platform facts
 
@@ -78,7 +99,8 @@ See [Camera research and Sable Camera plan](docs/CAMERA_RESEARCH.md).
 
 ## Physical-keyboard app research
 
-While SableOS 9 validation continues on Pixel 7, the application track is evaluating existing physical-keyboard work rather than immediately starting another IME from scratch.
+The application track evaluates existing physical-keyboard work rather than
+immediately starting another IME from scratch.
 
 Primary references include:
 
@@ -100,6 +122,7 @@ See [Physical-keyboard app research plan](docs/KEYBOARD_APP_RESEARCH.md).
 - [Camera research and Sable Camera plan](docs/CAMERA_RESEARCH.md)
 - [Camera no-root / root / SableOS capability roadmap](docs/CAMERA_ROOT_VS_NO_ROOT.md)
 - [Physical-keyboard app research plan](docs/KEYBOARD_APP_RESEARCH.md)
+- [SableOS Treble portability handoff](docs/SABLEOS_TREBLE_PORTABILITY_HANDOFF.md)
 - [SableOS bring-up contract](docs/SABLEOS_BRINGUP_CONTRACT.md)
 - [References](docs/REFERENCES.md)
 
@@ -129,27 +152,22 @@ Firmware/image corpora are maintained separately on `ai-g732` and are not commit
 
 ## Near-term plan
 
-The boot/firmware track stays parked. Application research can continue without changing the Titan 2 system image.
-
 ```text
-camera:
-  finish stock capability baseline
-  -> build reusable Camera2 probe
-  -> design Sable Camera around public + privileged backends
-
-keyboard:
-  capture Titan 2 physical-key event/keylayout baseline
-  -> evaluate Pastiera on real hardware
-  -> define cross-device keyboard profile schema
-
-Q27:
-  wait for newer/current OTA releases and preferably retail hardware
-  -> do not generalize prototype firmware
-
 SableOS:
-  finish Release 9 validation on Pixel 7
-  -> resume issue #2
-  -> design Titan 2 recovery-safe first flash
+  settle keyboard-first / Treble portability architecture
+  -> qualify AOSP16 clean GSI substrate
+  -> build first Sable-owned system.img
+  -> run E3 artifact preflight
+  -> decide deployment only after restore, AVB, userdata and serial-bound gates
+
+RestlessOS:
+  create/track sableos-project/treble_restlessos
+  -> use as reference/future fork after AOSP16 baseline exists
+
+Titan 2 Elite:
+  wait for hardware
+  -> run independent baseline
+  -> do not inherit Titan 2 PASS results
 ```
 
 The first alternate-system boot remains a **bring-up milestone**, not another research prerequisite.
