@@ -307,9 +307,7 @@ in this bounded order:
 4. L — power / thermal / suspend
 ```
 
-Collect passive charging/thermal/idle observations during the earlier sections;
-save the explicit bounded throttling check for last. Also complete the small M
-Wi-Fi/Bluetooth connectivity and D2-lite notification/attention baselines.
+The bounded stock manual pass is complete enough to stop: M Wi-Fi/Bluetooth and D2-lite notification/attention are PASS; K/I/L retain only explicitly documented environment/coverage/deferred evidence gaps. Do not extend stock research merely to eliminate those PARTIAL labels before the first Titan 2 Sable build.
 
 Do not call emergency services as a test. Keep carrier, subscriber, network,
 peer-device and private location identifiers out of committed results.
@@ -322,10 +320,10 @@ manual test session:
 ```bash
 export TITAN_SERIAL="$Titan2"
 
-T2_K_STATUS=PASS \
+T2_K_STATUS=PARTIAL \
 T2_J_STATUS=PASS \
 T2_I_STATUS=PARTIAL \
-T2_L_STATUS=PASS \
+T2_L_STATUS=PARTIAL \
 T2_MUTATION_LEVEL=USER_SETTING_CHANGE \
   bash tools/t2-tier2-stock-summary.sh
 ```
