@@ -58,6 +58,21 @@ The next highest-value work is:
 5. keep Titan 2 Elite entirely pending until the physical unit can be qualified
    independently.
 
+For the remaining **manual stock** session work, use the bounded execution order:
+
+```text
+0. documentation/status contract
+1. K — fingerprint / sensors / NFC / GNSS / IR / USB OTG
+2. J — audio / haptics (non-call paths)
+3. I — telephony / IMS + in-call audio routes
+4. L — power / thermal / suspend
+```
+
+Run passive L charging/thermal/idle observations during K/J/I where useful; save
+the explicit bounded sustained-load/throttling check for last. Also capture the
+small M connectivity and D2-lite notification/attention baselines below. Do not
+turn either into another broad reverse-engineering pass.
+
 ## Evidence discipline
 
 For every capture record:
@@ -73,6 +88,23 @@ active slot
 tool versions
 whether the operation was read-only or state-changing
 ```
+
+Every normalized section result must also carry the same machine-readable
+session envelope:
+
+```text
+BUILD=<stock build>
+ACTIVE_SLOT=<a/b>
+LOCK_STATE=<locked/unlocked>
+MUTATION_LEVEL=READ_ONLY|USER_SETTING_CHANGE|STATE_CHANGING
+PRIVATE_IDENTIFIERS_REDACTED=YES
+```
+
+`MUTATION_LEVEL` describes the highest mutation level used during that test
+session, not merely the behavior of the reporting script. Enabling/disabling a
+normal Android setting such as NFC, Bluetooth or Wi-Fi is
+`USER_SETTING_CHANGE`; reboot/fastboot/flash-like operations are
+`STATE_CHANGING`.
 
 Keep raw dumps, serials, modem identifiers and unreviewed vendor diagnostics in
 private evidence storage. Commit normalized/redacted conclusions and hashes.
@@ -318,6 +350,23 @@ notification.output.always_on_display
 Only controls backed by physical evidence should appear in the eventual Titan
 device profile.
 
+For the current stock baseline, keep a **D2-lite** pass bounded to observable
+behavior. Record at minimum:
+
+```text
+notification.output.secondary_display
+notification.output.haptic
+notification.output.audio
+notification.output.keyboard_backlight
+notification.output.status_led
+notification.output.always_on_display
+```
+
+Also record lockscreen redaction, basic dismiss/reply behavior where available,
+and whether notification-shade actions are keyboard reachable. D2-lite is
+evidence for future Sable Hub/keyboard-first triage; it is not authorization to
+reopen broad SubScreen or vendor-framework reverse engineering.
+
 ## Tier 1 for Titan 2 Elite arrival
 
 Before mutation, create an Elite factory baseline equivalent to Titan 2
@@ -466,16 +515,35 @@ important.
 
 ### J. Audio
 
-Baseline:
+Baseline the non-call audio paths independently:
 
-- earpiece;
+- earpiece where it can be exercised outside a call;
 - loudspeaker;
-- microphones for call and recording;
-- Bluetooth call/media;
+- microphones for recording;
+- Camera video audio;
+- Bluetooth media;
 - USB audio;
 - FM radio path;
 - vibration/haptics;
-- audio routing during calls and Camera recording.
+- speaker -> Bluetooth -> speaker route changes.
+
+Cross-link **actual in-call** earpiece/loudspeaker/Bluetooth routing to Tier 2 I
+so carrier/IMS and call-audio evidence describe the same call session.
+
+### M. Wi-Fi / Bluetooth connectivity
+
+Capture a small stock connectivity baseline because the N0 acceptance matrix
+needs Wi-Fi and Bluetooth parity early:
+
+- Wi-Fi scan and connect;
+- reconnect after radio toggle or short sleep;
+- simple roam between known APs only when naturally available;
+- Bluetooth pair and reconnect;
+- Bluetooth media;
+- Bluetooth HID if suitable hardware is available;
+- hotspot/tethering only if a later N0 parity decision needs it.
+
+Keep network identifiers and peer-device identifiers private/redacted.
 
 ### K. Fingerprint, sensors, NFC and GNSS
 
@@ -539,6 +607,29 @@ Use the same column set for Titan 2 and Elite:
 
 The last two columns are important: repeated "common Sable change needed"
 results are a signal that the portability abstraction is wrong.
+
+## Minimum normalized Tier 2 stock-baseline output
+
+At the end of the K/J/I/L stock-baseline work, the normalized result must emit
+at least:
+
+```text
+TITAN2_TIER2_K_STOCK_BASELINE=PASS|PARTIAL
+TITAN2_TIER2_J_STOCK_BASELINE=PASS|PARTIAL
+TITAN2_TIER2_I_STOCK_BASELINE=PASS|PARTIAL
+TITAN2_TIER2_L_STOCK_BASELINE=PASS|PARTIAL
+
+BUILD=<stock build>
+ACTIVE_SLOT=<a/b>
+LOCK_STATE=<locked/unlocked>
+MUTATION_LEVEL=READ_ONLY|USER_SETTING_CHANGE|STATE_CHANGING
+PRIVATE_IDENTIFIERS_REDACTED=YES
+```
+
+Use `PASS` only when the section's required available tests have evidence and
+unavailable capabilities are explicitly marked `NOT_AVAILABLE`/`NOT_PRESENT`.
+Use `PARTIAL` when required testing remains, a capability is `UNKNOWN`, or a
+test was intentionally not run. Do not convert missing evidence into PASS.
 
 ## Research stop rule
 
