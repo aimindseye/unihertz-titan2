@@ -1,6 +1,6 @@
 # Titan 2 family research checklist for SableOS
 
-Status: **active — Titan 2 Tier 1 A–D complete; Tier 2, first-Sable validation, and Titan 2 Elite work remain**
+Status: **Titan 2 Tier 1 and bounded Tier 2 qualification COMPLETE; first-Sable N0 validation/build work and Titan 2 Elite remain**
 
 Date: 2026-09-24
 
@@ -28,17 +28,17 @@ V01.00.13 evidence. Titan 2 Elite remains an independent target.
 | Tier 1 C. Display and input topology | **COMPLETE** | Primary and rear SubScreen topology, touch association, wake/lifecycle, brightness independence, notification presentation, security/display-group behavior, and rotation are characterized. Runtime display IDs remain explicitly non-stable. |
 | Tier 1 D. Stock keyboard/SubScreen ownership | **COMPLETE** | Kernel/vendor-framework/replaceable-policy boundaries are mapped, including keyboard light, programmable keys, Mouse Keys, SubScreen launcher/notifications, Kika policy, and vendor key-404 consumers. |
 | Titan 2 Elite Tier 1 arrival baseline | **NOT STARTED / WAITING FOR HARDWARE** | Must be captured independently before mutation; do not copy Titan 2 PASS results. |
-| Tier 2 E. Restore and deployment contract | **PARTIAL — E0/E1/E2 PASS; build target required; E3 blocked** | Restore set verified and hashed; bootloader-fastboot and fastbootd preflights passed. Sable Release 9 currently has a Pixel 7 / Panther artifact only; it is not a Titan 2 candidate. Still required: create a Titan 2 Sable build target, build the first Titan 2 artifact, run E3 artifact preflight, review AVB/LP/userdata policy, then perform the first bounded deployment. |
-| Tier 2 F. VINTF / vendor compatibility | **PARTIAL — stock runtime captured** | Final stock `stock-pre-n0` runtime capture saved VINTF/HAL/service evidence. Still required: normalized first-Sable comparison of HAL/service availability against this stock baseline. |
-| Tier 2 G. AVB / rollback / security | **PARTIAL — stock security runtime captured** | Bootloader/AVB feasibility work and stock vbmeta artifacts are captured, and the final stock runtime collector saved the security-service group. Still required: normalize KeyMint/Gatekeeper/StrongBox/biometric-strength evidence and any remaining rollback/key-rotation details before a future security claim. |
-| Tier 2 H. Camera | **PARTIAL — normal-app path complete** | Ordinary-app topology/probe and Sable Camera main/front/JPEG/DNG work are complete. Remaining controlled phase: SYSTEM_CAMERA-capable hidden tele/logical-camera access and negative third-party discovery tests if that capability is adopted. |
+| Tier 2 E. Restore and deployment preflight | **COMPLETE for Tier 2 — E0/E1/E2 PASS** | Restore set verified and hashed; bootloader-fastboot and fastbootd/LP preflights passed. E3 artifact fit/AVB/userdata review is now tracked with the first-Sable N0 artifact/deployment phase because it requires a real Titan 2 Sable artifact. |
+| Tier 2 F. VINTF / vendor compatibility | **COMPLETE stock baseline** | Final stock `stock-pre-n0` runtime capture saved VINTF/HAL/service evidence. The stock side is closed; normalized stock-vs-Sable comparison belongs to first-Sable N0 validation after boot. |
+| Tier 2 G. AVB / rollback / security | **COMPLETE for bounded stock qualification** | Bootloader/AVB feasibility work, stock vbmeta artifacts and the stock security-service group are captured. Additional KeyMint/Gatekeeper/StrongBox/biometric-strength normalization remains a future security-claim task, not an open Tier 2 blocker. |
+| Tier 2 H. Camera | **COMPLETE for bounded Tier 2 baseline** | Ordinary-app topology/probe and Sable Camera main/front/JPEG/DNG work are complete. SYSTEM_CAMERA-capable hidden tele/logical-camera work remains optional and is only reopened if that privileged capability is adopted. |
 | Tier 2 I. Telephony / IMS | **PARTIAL — tested single-SIM LTE/IMS path healthy** | SIM recognition, mobile data, LTE, normal incoming/outgoing voice, SMS/MMS, IMS, VoLTE, VoWiFi, earpiece/loudspeaker/Bluetooth call audio and proximity behavior are verified. Remaining gaps are 5G NSA/SA mode qualification and dual-SIM behavior. |
 | Tier 2 J. Audio | **PASS stock non-call baseline** | Loudspeaker, primary/secondary microphones, camera-video audio, Bluetooth media + route switching, USB audio input/output, FM and haptics are manually verified. In-call receiver/loudspeaker/Bluetooth routing remains intentionally cross-linked to Tier 2 I rather than J. |
 | Tier 2 M. Wi-Fi / Bluetooth | **PASS stock connectivity baseline** | Wi-Fi scan/connect, reconnect after toggle and sleep, roam, Bluetooth pair/reconnect, media and HID are verified. Hotspot/tethering is deliberately deferred because it is not required for the current N0 baseline. |
 | Tier 2 D2-lite. Notifications / attention | **PASS stock bounded baseline** | Lockscreen redaction, dismiss, inline reply, keyboard reachability, rear SubScreen notification output, notification audio and notification haptics are verified. Notification-driven keyboard backlight, status LED and AOD are not present in the tested stock configuration. |
 | Tier 2 K. Fingerprint, sensors, NFC and GNSS | **PARTIAL — only GNSS steady tracking deferred** | Fingerprint enrollment/authentication, HAL inventory, accelerometer, gyroscope, compass, proximity, ambient light, NFC tag read, GNSS first fix, IR transmit and USB OTG storage/HID are verified. Sustained GNSS tracking remains environment-limited indoors and is not recorded as a failure. |
 | Tier 2 L. Power / thermal / suspend | **PARTIAL — deep idle, wake and thermal/Health healthy** | Natural deep-idle entry, Power-button wake, keyboard/SubScreen wake behavior, thermal HAL and Health/battery evidence are verified. No distinct stock alternate charging mode or charge-limit/battery-health charging policy was found; Battery Saver's 90% option controls Battery Saver itself, not charging. Below-full USB charge progression remains unqualified and bounded throttling is intentionally deferred. |
-| Acceptance matrix | **PARTIAL** | Stock evidence can now be filled for boot feasibility, display/touch, keyboard/pointer/IME, SubScreen and normal-app camera. Every **First Sable N0** cell remains unproven until a Sable artifact is actually deployed. |
+| Acceptance matrix | **TIER 2 STOCK SIDE COMPLETE / FIRST SABLE PENDING** | Stock evidence is populated to the bounded Tier 2 stop boundary. Every **First Sable N0** cell remains unproven until a Sable artifact is actually deployed. |
 
 ### Current research stop boundary
 
@@ -60,7 +60,7 @@ The next highest-value work is:
 5. keep Titan 2 Elite entirely pending until the physical unit can be qualified
    independently.
 
-For the remaining **manual stock** session work, use the bounded execution order:
+The bounded **manual stock** session is complete. The execution order used was:
 
 ```text
 0. documentation/status contract
