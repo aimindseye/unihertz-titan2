@@ -21,7 +21,7 @@ Bounded device research for a future SableOS Titan 2 bring-up, plus focused appl
 
 ## Status
 
-**Core Titan 2 boot/firmware research is closed, Tier 1 keyboard/display ownership is complete, and SableOS Tier 2 / first-N0 preflight is now active. Pixel 7 Release 9 is frozen as the accepted touch-first reference.**
+**Core Titan 2 boot/firmware research is closed, Tier 1 keyboard/display ownership is complete, and SableOS Tier 2 / first-N0 preflight is active. Panther R9 is the frozen touch-first reference; active development is the keyboard-first Titan N0 sequence.**
 
 ```text
 T2-R0  Factory baseline                         CLOSED
@@ -31,6 +31,14 @@ T2-R3  SableOS feasibility decision            GO / CLOSED
 
 T2-R4  Tier 1 keyboard/display/ownership             CLOSED
 T2-B0  Tier 2 restore/VINTF/security/N0 preflight    ACTIVE
+
+SABLEOS_R9_PANTHER_REFERENCE=COMPLETE
+PUBLIC_BUILD_FOUNDATION=MERGED
+PUBLIC_BUILD_SELF_TEST=MERGED
+TITAN2_N0_DEVICE_ADAPTER=NOT_STARTED
+TITAN2_N0_ARTIFACT=ABSENT
+FIRST_SABLE_BOOT=BLOCKED_ON_ARTIFACT
+TIER2_STOCK_BASELINE=ACTIVE
 
 DO NOT REOPEN BROAD TIER 1 REVERSE ENGINEERING
 
@@ -83,7 +91,7 @@ See [Camera research and Sable Camera plan](docs/CAMERA_RESEARCH.md).
 
 ## Physical-keyboard app research
 
-While SableOS 9 validation continues on Pixel 7, the application track is evaluating existing physical-keyboard work rather than immediately starting another IME from scratch.
+With Panther R9 frozen as the touch-first reference, the application track evaluates existing physical-keyboard work while the active OS path moves through the Titan keyboard-first N0 sequence.
 
 Primary references include:
 
@@ -152,9 +160,11 @@ Q27:
   -> do not generalize prototype firmware
 
 SableOS:
-  finish Release 9 validation on Pixel 7
-  -> resume issue #2
-  -> design Titan 2 recovery-safe first flash
+  Panther R9 frozen reference
+  -> define Titan 2 device/product adapter + build target
+  -> build and preflight the first Titan 2 artifact
+  -> review recovery-safe AVB/LP/userdata plan
+  -> first bounded Titan 2 N0 flash
 ```
 
 The first alternate-system boot remains a **bring-up milestone**, not another research prerequisite.
