@@ -25,7 +25,7 @@ unproven until an actual Sable artifact is deployed.
 | sensors | **PASS tested stock baseline** — inventory plus accelerometer, gyroscope, compass, ambient-light and normal-call proximity behavior verified | **PENDING** | TBD | TBD |
 | NFC | **PASS stock baseline** — NFC features advertised and manual tag-read behavior verified | **PENDING** | TBD | TBD |
 | GNSS | **PARTIAL** — stock Factory Test/YGPS path verified and first fix recorded; sustained steady-tracking interval remains pending | **PENDING** | TBD | TBD |
-| suspend / power | **PARTIAL** — keyboard/SubScreen wake behavior known; Doze/auto-suspend path visible, but latest idle capture remained USB-powered so natural unplugged deep idle is still unqualified | **PENDING** | likely explicit Titan wake policy | TBD |
+| suspend / power | **PASS stock suspend baseline / policy partial** — keyboard/SubScreen wake behavior known and natural unplugged deep-idle entry observed; post-idle USB-powered state reflects reconnect for ADB capture. Additional charging/policy checks remain outside the suspend proof. | **PENDING** | likely explicit Titan wake policy | TBD |
 | charging / health / thermal | **PARTIAL** — thermal HAL/threshold inventory and Health/battery state captured cleanly; below-full charging progression, alternate charging, battery-health policy and bounded throttling remain unqualified | **PENDING** | TBD | TBD |
 
 ## N0 minimum success gate
