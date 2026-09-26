@@ -1,6 +1,6 @@
 # Titan 2 Tier 2 stock functional baseline worksheet
 
-Status: **active — automated stock runtime captured; manual K/J/I/L + bounded M/D2-lite remain**
+Status: **active — automated stock runtime captured; K/J/I/L classified; M complete; D2-lite remains**
 
 The automated Tier 2 collector records framework/HAL/service state. This
 worksheet captures user-visible behavior that static dumps cannot prove.
@@ -388,15 +388,59 @@ into a broad networking investigation.
 
 | Test | Result | Notes |
 | --- | --- | --- |
-| Wi-Fi scan | PENDING | redact network identifiers |
-| Wi-Fi connect | PENDING | |
-| Wi-Fi reconnect after radio toggle / short sleep | PENDING | |
-| Wi-Fi roam between known APs if naturally available | PENDING / NOT_TESTED | |
-| Bluetooth pair | PENDING | redact peer identifier |
-| Bluetooth reconnect | PENDING | |
-| Bluetooth media | cross-link J | |
-| Bluetooth HID | PENDING / NOT_TESTED | |
-| hotspot / tethering | DEFERRED unless needed | |
+| Wi-Fi scan | PASS | manual scan verified; identifiers remain private |
+| Wi-Fi connect | PASS | manual connection verified |
+| Wi-Fi reconnect after radio toggle / short sleep | PASS | both radio-toggle and short-sleep reconnect verified |
+| Wi-Fi roam between known APs if naturally available | PASS | manual roam verified |
+| Bluetooth pair | PASS | manual pairing verified; peer identifier remains private |
+| Bluetooth reconnect | PASS | manual reconnect verified |
+| Bluetooth media | PASS | cross-linked to Tier 2 J manual media playback |
+| Bluetooth HID | PASS | manual HID behavior verified |
+| hotspot / tethering | DEFERRED | not required for current N0 stock baseline |
+
+Minimum normalized M detail:
+
+```text
+wifi_scan=PASS|FAIL
+wifi_connect=PASS|FAIL
+wifi_reconnect_toggle=PASS|FAIL
+wifi_reconnect_sleep=PASS|FAIL
+wifi_roam=PASS|FAIL|NOT_TESTED
+bluetooth_pair=PASS|FAIL
+bluetooth_reconnect=PASS|FAIL
+bluetooth_media=PASS|FAIL
+bluetooth_hid=PASS|FAIL|NOT_TESTED
+hotspot=PASS|FAIL|DEFERRED|NOT_TESTED
+
+TITAN2_TIER2_M_STOCK_BASELINE=PASS|PARTIAL
+```
+
+Current normalized M status (2026-09-26):
+
+```text
+wifi_scan=PASS
+wifi_connect=PASS
+wifi_reconnect_toggle=PASS
+wifi_reconnect_sleep=PASS
+wifi_roam=PASS
+bluetooth_pair=PASS
+bluetooth_reconnect=PASS
+bluetooth_media=PASS
+bluetooth_hid=PASS
+hotspot=DEFERRED
+
+TITAN2_TIER2_M_STOCK_BASELINE=PASS
+
+BUILD=Titan 2_V01.00.13
+ACTIVE_SLOT=a
+LOCK_STATE=unlocked
+MUTATION_LEVEL=USER_SETTING_CHANGE
+PRIVATE_IDENTIFIERS_REDACTED=YES
+```
+
+M is PASS because all required Wi-Fi/Bluetooth connectivity checks were verified.
+Hotspot/tethering remains deliberately deferred and is not part of the current
+required N0 stock-connectivity gate.
 
 ## D2-lite. Notification / attention baseline
 
