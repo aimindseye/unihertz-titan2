@@ -16,17 +16,17 @@ unproven until an actual Sable artifact is deployed.
 | rear SubScreen | **PASS baseline** — 410x502 display, rear touch, lifecycle, wake, rotation, brightness independence and security/group behavior mapped | **PENDING** | **YES** — Titan-specific secondary-display/presentation profile | TBD |
 | Wi-Fi | **AUTOMATED CAPTURED** — final stock runtime network/service state saved; functional behavior not promoted to PASS by this capture alone | **PENDING** | TBD | TBD |
 | Bluetooth | **AUTOMATED CAPTURED** — final stock runtime network/service state saved; functional behavior not promoted to PASS by this capture alone | **PENDING** | TBD | TBD |
-| cellular data | **AUTOMATED CAPTURED / MANUAL PENDING** — telephony service state saved; functional data test still required | **PENDING** | TBD | TBD |
-| voice / IMS | **AUTOMATED CAPTURED / MANUAL PENDING** — telephony/IMS service state saved; call and IMS behavior still required | **PENDING** | TBD | TBD |
-| SMS / MMS | **AUTOMATED CAPTURED / MANUAL PENDING** — telephony service state saved; send/receive behavior still required | **PENDING** | TBD | TBD |
+| cellular data | **PASS tested LTE baseline** — SIM recognized, mobile data and LTE registration verified; 5G NSA/SA modes not qualified in this session | **PENDING** | TBD | TBD |
+| voice / IMS | **PASS tested single-SIM baseline** — incoming/outgoing voice, IMS, VoLTE, VoWiFi and earpiece/loudspeaker/Bluetooth call routes verified; dual-SIM not tested | **PENDING** | TBD | TBD |
+| SMS / MMS | **PASS stock baseline** — SMS and MMS send/receive verified | **PENDING** | TBD | TBD |
 | audio | **PASS stock non-call baseline** — loudspeaker, microphones, camera-video audio, Bluetooth media/route switching, USB audio input/output, FM and haptics verified; in-call routes remain tracked with telephony/IMS | **PENDING** | TBD | TBD |
 | camera | **PASS normal-app baseline** — public rear/front, high-res JPEG and rear DNG proven; hidden tele/logical topology known | **PENDING** | likely camera device profile; privileged hidden-camera path only if adopted | TBD |
 | fingerprint | **PASS stock baseline** — FocalTech ownership known; FingerprintProvider sensor 5 present; enrollment and manual unlock/authentication verified; 0 HAL deaths observed in captured state | **PENDING** | TBD | TBD |
-| sensors | **PARTIAL** — sensor inventory plus accelerometer, gyroscope, compass and ambient-light behavior verified; proximity behavior remains cross-linked to normal-call testing | **PENDING** | TBD | TBD |
+| sensors | **PASS tested stock baseline** — inventory plus accelerometer, gyroscope, compass, ambient-light and normal-call proximity behavior verified | **PENDING** | TBD | TBD |
 | NFC | **PASS stock baseline** — NFC features advertised and manual tag-read behavior verified | **PENDING** | TBD | TBD |
 | GNSS | **PARTIAL** — stock Factory Test/YGPS path verified and first fix recorded; sustained steady-tracking interval remains pending | **PENDING** | TBD | TBD |
-| suspend / power | **PARTIAL** — keyboard/SubScreen wake behavior known and automated power state captured; manual deep-idle/suspend behavior still required | **PENDING** | likely explicit Titan wake policy | TBD |
-| charging / health / thermal | **AUTOMATED CAPTURED / MANUAL PENDING** — power/thermal/Health service evidence saved; charging policy and bounded thermal behavior still required | **PENDING** | TBD | TBD |
+| suspend / power | **PARTIAL** — keyboard/SubScreen wake behavior known; Doze/auto-suspend path visible, but latest idle capture remained USB-powered so natural unplugged deep idle is still unqualified | **PENDING** | likely explicit Titan wake policy | TBD |
+| charging / health / thermal | **PARTIAL** — thermal HAL/threshold inventory and Health/battery state captured cleanly; below-full charging progression, alternate charging, battery-health policy and bounded throttling remain unqualified | **PENDING** | TBD | TBD |
 
 ## N0 minimum success gate
 
