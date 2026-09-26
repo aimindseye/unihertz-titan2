@@ -9,6 +9,9 @@ adapters, keyboard-first UI and N0 acceptance, use:
 - [Camera research](docs/CAMERA_RESEARCH.md)
 - [Physical-keyboard app research](docs/KEYBOARD_APP_RESEARCH.md)
 - [SableOS bring-up contract](docs/SABLEOS_BRINGUP_CONTRACT.md)
+- [Titan 2 Tier 2 / first Sable N0 runbook](docs/TITAN2_TIER2_RUNBOOK.md)
+- [Titan 2 N0 acceptance matrix](docs/TITAN2_N0_ACCEPTANCE_MATRIX.md)
+- [Titan 2 Tier 2 stock functional baseline worksheet](docs/TITAN2_TIER2_STOCK_BASELINE_WORKSHEET.md)
 
 The checklist prioritizes input-event mapping, display/input topology, stock
 keyboard/SubScreen ownership and an independent Titan 2 Elite factory baseline
@@ -19,7 +22,7 @@ Bounded device research for a future SableOS Titan 2 bring-up, plus focused appl
 
 ## Status
 
-**Core Titan 2 boot/firmware research closed on 2026-09-22. SableOS bring-up is intentionally deferred until SableOS Release 9 validation on the Pixel 7 is complete.**
+**Core Titan 2 boot/firmware research is closed, Tier 1 keyboard/display ownership is complete, and SableOS Tier 2 / first-N0 preflight is active. Panther R9 is the frozen touch-first reference; active development is the keyboard-first Titan N0 sequence.**
 
 ```text
 T2-R0  Factory baseline                         CLOSED
@@ -27,14 +30,25 @@ T2-R1  Firmware + partition + recovery closure CLOSED
 T2-R2  Bootloader / AVB / GSI feasibility      CLOSED
 T2-R3  SableOS feasibility decision            GO / CLOSED
 
-STOP BROAD DEVICE RESEARCH
+T2-R4  Tier 1 keyboard/display/ownership             CLOSED
+T2-B0  Tier 2 restore/VINTF/security/N0 preflight    ACTIVE
 
-Parallel work allowed:
-  focused camera-app research
-  focused physical-keyboard app research
+SABLEOS_R9_PANTHER_REFERENCE=COMPLETE
+PUBLIC_BUILD_FOUNDATION=MERGED
+PUBLIC_BUILD_SELF_TEST=MERGED
+TITAN2_N0_DEVICE_ADAPTER=NOT_STARTED
+TITAN2_N0_ARTIFACT=ABSENT
+FIRST_SABLE_BOOT=BLOCKED_ON_ARTIFACT
+TIER2_STOCK_BASELINE=ACTIVE
 
-OS bring-up resumes after:
-  SableOS 9 validation on Pixel 7
+DO NOT REOPEN BROAD TIER 1 REVERSE ENGINEERING
+
+Active path:
+  verify restore + stock runtime baseline
+  -> capture bootloader/fastbootd state
+  -> preflight exact Sable system artifact
+  -> review AVB/LP/userdata plan
+  -> first bounded Sable N0 flash
 ```
 
 No SableOS image has been flashed to the Titan 2 yet.
@@ -78,7 +92,7 @@ See [Camera research and Sable Camera plan](docs/CAMERA_RESEARCH.md).
 
 ## Physical-keyboard app research
 
-While SableOS 9 validation continues on Pixel 7, the application track is evaluating existing physical-keyboard work rather than immediately starting another IME from scratch.
+With Panther R9 frozen as the touch-first reference, the application track evaluates existing physical-keyboard work while the active OS path moves through the Titan keyboard-first N0 sequence.
 
 Primary references include:
 
@@ -129,7 +143,7 @@ Firmware/image corpora are maintained separately on `ai-g732` and are not commit
 
 ## Near-term plan
 
-The boot/firmware track stays parked. Application research can continue without changing the Titan 2 system image.
+Tier 1 research is parked. The active OS track is Tier 2 / first-N0 preflight; no non-stock image is written until the exact Sable artifact, AVB action, LP sizing and userdata policy have been reviewed.
 
 ```text
 camera:
@@ -147,9 +161,11 @@ Q27:
   -> do not generalize prototype firmware
 
 SableOS:
-  finish Release 9 validation on Pixel 7
-  -> resume issue #2
-  -> design Titan 2 recovery-safe first flash
+  Panther R9 frozen reference
+  -> define Titan 2 device/product adapter + build target
+  -> build and preflight the first Titan 2 artifact
+  -> review recovery-safe AVB/LP/userdata plan
+  -> first bounded Titan 2 N0 flash
 ```
 
 The first alternate-system boot remains a **bring-up milestone**, not another research prerequisite.

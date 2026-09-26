@@ -16,7 +16,7 @@ Titan 2 and Titan 2 Elite are always independent evidence targets. Do not copy a
 PASS from one device to the other.
 
 
-## Progress snapshot — Titan 2 (2026-09-25)
+## Progress snapshot — Titan 2 (2026-09-26)
 
 Status labels in this table apply only to the **Titan 2** retail unit and stock
 V01.00.13 evidence. Titan 2 Elite remains an independent target.
@@ -28,14 +28,14 @@ V01.00.13 evidence. Titan 2 Elite remains an independent target.
 | Tier 1 C. Display and input topology | **COMPLETE** | Primary and rear SubScreen topology, touch association, wake/lifecycle, brightness independence, notification presentation, security/display-group behavior, and rotation are characterized. Runtime display IDs remain explicitly non-stable. |
 | Tier 1 D. Stock keyboard/SubScreen ownership | **COMPLETE** | Kernel/vendor-framework/replaceable-policy boundaries are mapped, including keyboard light, programmable keys, Mouse Keys, SubScreen launcher/notifications, Kika policy, and vendor key-404 consumers. |
 | Titan 2 Elite Tier 1 arrival baseline | **NOT STARTED / WAITING FOR HARDWARE** | Must be captured independently before mutation; do not copy Titan 2 PASS results. |
-| Tier 2 E. Restore and deployment contract | **PARTIAL — stock/restore side substantially complete** | Stock firmware equivalence, restore-critical images, partition/LP topology, fastbootd, active-slot/AVB feasibility and restore sources are characterized. Still required: first bounded Sable deployment, final artifact choice from experiment, and explicit userdata-wipe determination. |
-| Tier 2 F. VINTF / vendor compatibility | **PARTIAL** | Stock Treble/vendor/VNDK/API/ABI baseline and compatibility feasibility are known. Still required: normalized first-Sable comparison of HAL/service availability against stock. |
-| Tier 2 G. AVB / rollback / security | **PARTIAL** | Bootloader/AVB feasibility work is complete enough for bring-up and stock vbmeta artifacts are captured. Still required for the checklist: normalized full security-capability inventory (KeyMint/Gatekeeper/StrongBox/biometric strength and any remaining rollback/key-rotation details) for a future security claim. |
+| Tier 2 E. Restore and deployment contract | **PARTIAL — E0/E1/E2 PASS; build target required; E3 blocked** | Restore set verified and hashed; bootloader-fastboot and fastbootd preflights passed. Sable Release 9 currently has a Pixel 7 / Panther artifact only; it is not a Titan 2 candidate. Still required: create a Titan 2 Sable build target, build the first Titan 2 artifact, run E3 artifact preflight, review AVB/LP/userdata policy, then perform the first bounded deployment. |
+| Tier 2 F. VINTF / vendor compatibility | **PARTIAL — stock runtime captured** | Final stock `stock-pre-n0` runtime capture saved VINTF/HAL/service evidence. Still required: normalized first-Sable comparison of HAL/service availability against this stock baseline. |
+| Tier 2 G. AVB / rollback / security | **PARTIAL — stock security runtime captured** | Bootloader/AVB feasibility work and stock vbmeta artifacts are captured, and the final stock runtime collector saved the security-service group. Still required: normalize KeyMint/Gatekeeper/StrongBox/biometric-strength evidence and any remaining rollback/key-rotation details before a future security claim. |
 | Tier 2 H. Camera | **PARTIAL — normal-app path complete** | Ordinary-app topology/probe and Sable Camera main/front/JPEG/DNG work are complete. Remaining controlled phase: SYSTEM_CAMERA-capable hidden tele/logical-camera access and negative third-party discovery tests if that capability is adopted. |
-| Tier 2 I. Telephony / IMS | **NOT STARTED as checklist baseline** | SIM/carrier-specific data, voice, SMS/MMS, IMS, VoLTE/VoWiFi, APN, dual-SIM and call-audio baseline still required. |
-| Tier 2 J. Audio | **NOT STARTED as checklist baseline** | Earpiece, speaker, microphones, Bluetooth, USB audio, FM, haptics and call/camera routing baseline still required. |
-| Tier 2 K. Fingerprint, sensors, NFC and GNSS | **PARTIAL / INCIDENTAL ONLY** | Fingerprint kernel/input ownership has incidental evidence from keyboard work. Full behavior + HAL/service inventory for fingerprint, sensors, NFC, GNSS, IR and USB OTG remains. |
-| Tier 2 L. Power / thermal / suspend | **PARTIAL** | Keyboard/SubScreen wake and screen-off key behavior are characterized. Charging/health policy, broad suspend/deep-idle, thermal zones/throttling and battery/Health HAL baseline remain. |
+| Tier 2 I. Telephony / IMS | **PARTIAL — tested single-SIM LTE/IMS path healthy** | SIM recognition, mobile data, LTE, normal incoming/outgoing voice, SMS/MMS, IMS, VoLTE, VoWiFi, earpiece/loudspeaker/Bluetooth call audio and proximity behavior are verified. Remaining gaps are 5G NSA/SA mode qualification and dual-SIM behavior. |
+| Tier 2 J. Audio | **PASS stock non-call baseline** | Loudspeaker, primary/secondary microphones, camera-video audio, Bluetooth media + route switching, USB audio input/output, FM and haptics are manually verified. In-call receiver/loudspeaker/Bluetooth routing remains intentionally cross-linked to Tier 2 I rather than J. |
+| Tier 2 K. Fingerprint, sensors, NFC and GNSS | **PARTIAL — only GNSS steady tracking deferred** | Fingerprint enrollment/authentication, HAL inventory, accelerometer, gyroscope, compass, proximity, ambient light, NFC tag read, GNSS first fix, IR transmit and USB OTG storage/HID are verified. Sustained GNSS tracking remains environment-limited indoors and is not recorded as a failure. |
+| Tier 2 L. Power / thermal / suspend | **PARTIAL — deep idle, wake and thermal/Health healthy** | Natural deep-idle entry, Power-button wake, keyboard/SubScreen wake behavior, thermal HAL and Health/battery evidence are verified. No distinct stock alternate charging mode or charge-limit/battery-health charging policy was found; Battery Saver's 90% option controls Battery Saver itself, not charging. Below-full USB charge progression remains unqualified and bounded throttling is intentionally deferred. |
 | Acceptance matrix | **PARTIAL** | Stock evidence can now be filled for boot feasibility, display/touch, keyboard/pointer/IME, SubScreen and normal-app camera. Every **First Sable N0** cell remains unproven until a Sable artifact is actually deployed. |
 
 ### Current research stop boundary
@@ -52,10 +52,26 @@ The next highest-value work is:
    bounded Sable N0 experiment;
 3. use that boot to populate the first-Sable side of the acceptance matrix and
    drive only evidence-based follow-up;
-4. in parallel, capture stock telephony/audio/sensors/power baselines before
-   those subsystems are needed for N0 parity;
+4. complete the manual stock telephony/audio/sensors/power worksheet against the
+   saved `stock-pre-n0` automated runtime baseline before those subsystems are
+   needed for N0 parity;
 5. keep Titan 2 Elite entirely pending until the physical unit can be qualified
    independently.
+
+For the remaining **manual stock** session work, use the bounded execution order:
+
+```text
+0. documentation/status contract
+1. K — fingerprint / sensors / NFC / GNSS / IR / USB OTG
+2. J — audio / haptics (non-call paths)
+3. I — telephony / IMS + in-call audio routes
+4. L — power / thermal / suspend
+```
+
+Run passive L charging/thermal/idle observations during K/J/I where useful; save
+the explicit bounded sustained-load/throttling check for last. Also capture the
+small M connectivity and D2-lite notification/attention baselines below. Do not
+turn either into another broad reverse-engineering pass.
 
 ## Evidence discipline
 
@@ -72,6 +88,23 @@ active slot
 tool versions
 whether the operation was read-only or state-changing
 ```
+
+Every normalized section result must also carry the same machine-readable
+session envelope:
+
+```text
+BUILD=<stock build>
+ACTIVE_SLOT=<a/b>
+LOCK_STATE=<locked/unlocked>
+MUTATION_LEVEL=READ_ONLY|USER_SETTING_CHANGE|STATE_CHANGING
+PRIVATE_IDENTIFIERS_REDACTED=YES
+```
+
+`MUTATION_LEVEL` describes the highest mutation level used during that test
+session, not merely the behavior of the reporting script. Enabling/disabling a
+normal Android setting such as NFC, Bluetooth or Wi-Fi is
+`USER_SETTING_CHANGE`; reboot/fastboot/flash-like operations are
+`STATE_CHANGING`.
 
 Keep raw dumps, serials, modem identifiers and unreviewed vendor diagnostics in
 private evidence storage. Commit normalized/redacted conclusions and hashes.
@@ -317,6 +350,23 @@ notification.output.always_on_display
 Only controls backed by physical evidence should appear in the eventual Titan
 device profile.
 
+For the current stock baseline, keep a **D2-lite** pass bounded to observable
+behavior. Record at minimum:
+
+```text
+notification.output.secondary_display
+notification.output.haptic
+notification.output.audio
+notification.output.keyboard_backlight
+notification.output.status_led
+notification.output.always_on_display
+```
+
+Also record lockscreen redaction, basic dismiss/reply behavior where available,
+and whether notification-shade actions are keyboard reachable. D2-lite is
+evidence for future Sable Hub/keyboard-first triage; it is not authorization to
+reopen broad SubScreen or vendor-framework reverse engineering.
+
 ## Tier 1 for Titan 2 Elite arrival
 
 Before mutation, create an Elite factory baseline equivalent to Titan 2
@@ -465,16 +515,35 @@ important.
 
 ### J. Audio
 
-Baseline:
+Baseline the non-call audio paths independently:
 
-- earpiece;
+- earpiece where it can be exercised outside a call;
 - loudspeaker;
-- microphones for call and recording;
-- Bluetooth call/media;
+- microphones for recording;
+- Camera video audio;
+- Bluetooth media;
 - USB audio;
 - FM radio path;
 - vibration/haptics;
-- audio routing during calls and Camera recording.
+- speaker -> Bluetooth -> speaker route changes.
+
+Cross-link **actual in-call** earpiece/loudspeaker/Bluetooth routing to Tier 2 I
+so carrier/IMS and call-audio evidence describe the same call session.
+
+### M. Wi-Fi / Bluetooth connectivity
+
+Capture a small stock connectivity baseline because the N0 acceptance matrix
+needs Wi-Fi and Bluetooth parity early:
+
+- Wi-Fi scan and connect;
+- reconnect after radio toggle or short sleep;
+- simple roam between known APs only when naturally available;
+- Bluetooth pair and reconnect;
+- Bluetooth media;
+- Bluetooth HID if suitable hardware is available;
+- hotspot/tethering only if a later N0 parity decision needs it.
+
+Keep network identifiers and peer-device identifiers private/redacted.
 
 ### K. Fingerprint, sensors, NFC and GNSS
 
@@ -492,6 +561,13 @@ Capture stock behavior and HAL/service identity for:
 - USB OTG.
 
 These are N0 parity checks after the first Sable userspace boot.
+
+The tested retail stock build also exposes a local Factory Test suite through
+`*#*#3377#*#*`. Its YGPS and Single Test surfaces provide useful hardware
+bring-up diagnostics. Preserve an equivalent SableOS diagnostics capability and,
+where technically feasible, retain this code as a compatibility entry point.
+Do not copy calibration/write-capable factory actions into SableOS N0 until their
+ownership and safety contracts are understood.
 
 ### L. Power / thermal / suspend
 
@@ -538,6 +614,29 @@ Use the same column set for Titan 2 and Elite:
 
 The last two columns are important: repeated "common Sable change needed"
 results are a signal that the portability abstraction is wrong.
+
+## Minimum normalized Tier 2 stock-baseline output
+
+At the end of the K/J/I/L stock-baseline work, the normalized result must emit
+at least:
+
+```text
+TITAN2_TIER2_K_STOCK_BASELINE=PASS|PARTIAL
+TITAN2_TIER2_J_STOCK_BASELINE=PASS|PARTIAL
+TITAN2_TIER2_I_STOCK_BASELINE=PASS|PARTIAL
+TITAN2_TIER2_L_STOCK_BASELINE=PASS|PARTIAL
+
+BUILD=<stock build>
+ACTIVE_SLOT=<a/b>
+LOCK_STATE=<locked/unlocked>
+MUTATION_LEVEL=READ_ONLY|USER_SETTING_CHANGE|STATE_CHANGING
+PRIVATE_IDENTIFIERS_REDACTED=YES
+```
+
+Use `PASS` only when the section's required available tests have evidence and
+unavailable capabilities are explicitly marked `NOT_AVAILABLE`/`NOT_PRESENT`.
+Use `PARTIAL` when required testing remains, a capability is `UNKNOWN`, or a
+test was intentionally not run. Do not convert missing evidence into PASS.
 
 ## Research stop rule
 
