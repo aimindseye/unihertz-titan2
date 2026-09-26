@@ -34,6 +34,7 @@ V01.00.13 evidence. Titan 2 Elite remains an independent target.
 | Tier 2 H. Camera | **PARTIAL — normal-app path complete** | Ordinary-app topology/probe and Sable Camera main/front/JPEG/DNG work are complete. Remaining controlled phase: SYSTEM_CAMERA-capable hidden tele/logical-camera access and negative third-party discovery tests if that capability is adopted. |
 | Tier 2 I. Telephony / IMS | **PARTIAL — tested single-SIM LTE/IMS path healthy** | SIM recognition, mobile data, LTE, normal incoming/outgoing voice, SMS/MMS, IMS, VoLTE, VoWiFi, earpiece/loudspeaker/Bluetooth call audio and proximity behavior are verified. Remaining gaps are 5G NSA/SA mode qualification and dual-SIM behavior. |
 | Tier 2 J. Audio | **PASS stock non-call baseline** | Loudspeaker, primary/secondary microphones, camera-video audio, Bluetooth media + route switching, USB audio input/output, FM and haptics are manually verified. In-call receiver/loudspeaker/Bluetooth routing remains intentionally cross-linked to Tier 2 I rather than J. |
+| Tier 2 M. Wi-Fi / Bluetooth | **PASS stock connectivity baseline** | Wi-Fi scan/connect, reconnect after toggle and sleep, roam, Bluetooth pair/reconnect, media and HID are verified. Hotspot/tethering is deliberately deferred because it is not required for the current N0 baseline. |
 | Tier 2 K. Fingerprint, sensors, NFC and GNSS | **PARTIAL — only GNSS steady tracking deferred** | Fingerprint enrollment/authentication, HAL inventory, accelerometer, gyroscope, compass, proximity, ambient light, NFC tag read, GNSS first fix, IR transmit and USB OTG storage/HID are verified. Sustained GNSS tracking remains environment-limited indoors and is not recorded as a failure. |
 | Tier 2 L. Power / thermal / suspend | **PARTIAL — deep idle, wake and thermal/Health healthy** | Natural deep-idle entry, Power-button wake, keyboard/SubScreen wake behavior, thermal HAL and Health/battery evidence are verified. No distinct stock alternate charging mode or charge-limit/battery-health charging policy was found; Battery Saver's 90% option controls Battery Saver itself, not charging. Below-full USB charge progression remains unqualified and bounded throttling is intentionally deferred. |
 | Acceptance matrix | **PARTIAL** | Stock evidence can now be filled for boot feasibility, display/touch, keyboard/pointer/IME, SubScreen and normal-app camera. Every **First Sable N0** cell remains unproven until a Sable artifact is actually deployed. |
@@ -69,8 +70,7 @@ For the remaining **manual stock** session work, use the bounded execution order
 ```
 
 Run passive L charging/thermal/idle observations during K/J/I where useful; save
-the explicit bounded sustained-load/throttling check for last. Also capture the
-small M connectivity and D2-lite notification/attention baselines below. Do not
+the explicit bounded sustained-load/throttling check for last. M connectivity is now complete. Capture the remaining bounded D2-lite notification/attention baseline below. Do not
 turn either into another broad reverse-engineering pass.
 
 ## Evidence discipline
