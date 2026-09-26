@@ -33,7 +33,7 @@ V01.00.13 evidence. Titan 2 Elite remains an independent target.
 | Tier 2 G. AVB / rollback / security | **PARTIAL — stock security runtime captured** | Bootloader/AVB feasibility work and stock vbmeta artifacts are captured, and the final stock runtime collector saved the security-service group. Still required: normalize KeyMint/Gatekeeper/StrongBox/biometric-strength evidence and any remaining rollback/key-rotation details before a future security claim. |
 | Tier 2 H. Camera | **PARTIAL — normal-app path complete** | Ordinary-app topology/probe and Sable Camera main/front/JPEG/DNG work are complete. Remaining controlled phase: SYSTEM_CAMERA-capable hidden tele/logical-camera access and negative third-party discovery tests if that capability is adopted. |
 | Tier 2 I. Telephony / IMS | **PARTIAL — automated stock runtime captured** | Telephony/IMS service-state evidence is saved from the final stock runtime capture. Manual SIM/carrier-specific data, voice, SMS/MMS, IMS, VoLTE/VoWiFi, dual-SIM and call-audio behavior remains required. |
-| Tier 2 J. Audio | **PARTIAL — automated stock runtime captured** | Audio framework/service evidence is saved from the final stock runtime capture. Manual earpiece, speaker, microphone, Bluetooth/USB audio, FM, haptics and call/camera-routing behavior remains required. |
+| Tier 2 J. Audio | **PASS stock non-call baseline** | Loudspeaker, primary/secondary microphones, camera-video audio, Bluetooth media + route switching, USB audio input/output, FM and haptics are manually verified. In-call receiver/loudspeaker/Bluetooth routing remains intentionally cross-linked to Tier 2 I rather than J. |
 | Tier 2 K. Fingerprint, sensors, NFC and GNSS | **PARTIAL — manual baseline nearly closed** | Fingerprint enrollment/authentication, HAL inventory, accelerometer, gyroscope, compass, ambient light, NFC tag read, GNSS first fix, IR transmit and USB OTG storage/HID are verified. Remaining K closure items are proximity behavior (cross-linked to the normal-call test in I) and sustained GNSS tracking, which is deferred because the current indoor environment is unsuitable for a reliable qualification. This is not recorded as a GNSS failure. |
 | Tier 2 L. Power / thermal / suspend | **PARTIAL — automated stock runtime captured** | Keyboard/SubScreen wake behavior is characterized and the final stock runtime capture saved power/thermal/Health service evidence. Manual charging/health policy, suspend/deep-idle and bounded throttling behavior remain required. |
 | Acceptance matrix | **PARTIAL** | Stock evidence can now be filled for boot feasibility, display/touch, keyboard/pointer/IME, SubScreen and normal-app camera. Every **First Sable N0** cell remains unproven until a Sable artifact is actually deployed. |
@@ -561,6 +561,13 @@ Capture stock behavior and HAL/service identity for:
 - USB OTG.
 
 These are N0 parity checks after the first Sable userspace boot.
+
+The tested retail stock build also exposes a local Factory Test suite through
+`*#*#3377#*#*`. Its YGPS and Single Test surfaces provide useful hardware
+bring-up diagnostics. Preserve an equivalent SableOS diagnostics capability and,
+where technically feasible, retain this code as a compatibility entry point.
+Do not copy calibration/write-capable factory actions into SableOS N0 until their
+ownership and safety contracts are understood.
 
 ### L. Power / thermal / suspend
 
