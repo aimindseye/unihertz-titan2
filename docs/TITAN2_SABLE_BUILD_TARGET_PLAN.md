@@ -159,6 +159,32 @@ preserving practical on-device hardware verification so keyboard-first bring-up
 and later field support do not lose the diagnostics that stock firmware makes
 available.
 
+Implementation rule:
+
+```text
+FACTORY_TEST_APP_REVERSE_ENGINEERING=NOT_REQUIRED_BY_DEFAULT
+SABLE_DIAGNOSTICS_IMPLEMENTATION=SABLE_OWNED
+BLACK_BOX_BEHAVIORAL_EQUIVALENCE=SUFFICIENT_FOR_READ_ONLY_TESTS
+SELECTIVE_STOCK_IMPLEMENTATION_STUDY=ONLY_IF_VENDOR_HOOK_REQUIRED
+```
+
+For read-only diagnostics, prefer direct Android/framework APIs, binder/HAL
+interfaces already exposed to the system image, sysfs/input/service interfaces
+covered by the Titan device adapter, and bounded vendor interfaces that are
+already part of the preserved stock vendor contract. Reproduce the **observable
+test capability**, not the proprietary Factory Test application's code or UI.
+
+Study the stock Factory Test implementation only when a required diagnostic
+cannot be reproduced through documented/inspectable platform interfaces, or
+when the stock test is the only evidence of a vendor-specific command/protocol.
+Even then, scope the investigation to identifying the minimal interface,
+permission/service owner, request/response semantics and safety boundary needed
+for a Sable-owned test.
+
+Calibration, RF programming, aging/stress modes and other state-changing factory
+operations remain out of scope for N0 and must not be inferred from the
+read-only diagnostic paths.
+
 ## N0 artifact contract
 
 The first candidate is not flashable merely because the build succeeds.
