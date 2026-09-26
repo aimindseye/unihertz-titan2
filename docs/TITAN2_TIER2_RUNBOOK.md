@@ -1,6 +1,6 @@
 # Titan 2 Tier 2 / first Sable N0 runbook
 
-Status: **ACTIVE — preflight and stock baselines may run; first flash remains gated on the actual Sable artifact + reviewed AVB/LP plan**
+Status: **TIER 2 COMPLETE — bounded stock qualification and E0/E1/E2 preflight are closed; first Sable N0 artifact/deployment is the next phase and remains gated on the actual artifact + reviewed AVB/LP/userdata plan**
 
 Target: Titan 2 stock V01.00.13, unlocked/orange, initially preserving the
 stock MediaTek kernel/vendor stack.
@@ -307,12 +307,12 @@ in this bounded order:
 4. L — power / thermal / suspend
 ```
 
-The bounded stock manual pass is complete enough to stop: M Wi-Fi/Bluetooth and D2-lite notification/attention are PASS; K/I/L retain only explicitly documented environment/coverage/deferred evidence gaps. Do not extend stock research merely to eliminate those PARTIAL labels before the first Titan 2 Sable build.
+Tier 2 is complete. The bounded stock manual pass is closed: M Wi-Fi/Bluetooth and D2-lite notification/attention are PASS; K/I/L retain only explicitly documented environment/coverage/deferred evidence gaps. Those PARTIAL labels are recorded limitations, not unfinished Tier 2 work and not observed device failures. Do not extend stock research merely to eliminate them before the first Titan 2 Sable build.
 
 Do not call emergency services as a test. Keep carrier, subscriber, network,
 peer-device and private location identifiers out of committed results.
 
-After K/J/I/L are complete enough to classify, emit the required normalized
+The final K/J/I/L classification has been emitted. For reproducibility, the normalized
 summary with the helper. The helper itself only performs read-only ADB property
 reads; `T2_MUTATION_LEVEL` must describe the highest mutation level used by the
 manual test session:
