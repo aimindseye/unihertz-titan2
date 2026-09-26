@@ -1,17 +1,61 @@
 # Titan 2 family research checklist for SableOS
 
-Status: **active parallel research reference**
+Status: **active — Titan 2 Tier 1 A–D complete; Tier 2, first-Sable validation, and Titan 2 Elite work remain**
 
 Date: 2026-09-24
 
 This checklist is intentionally narrower than the original Titan 2 firmware
 forensics. The Titan 2 bootloader/AVB/Treble feasibility questions are already
 well covered. The next research should produce evidence that directly fills
-future SableOS device-adapter, keyboard-first UI, Camera and N0 acceptance
-contracts.
+future SableOS device-adapter, Keyboard-First Design V1, Camera and N0
+acceptance contracts. The corresponding common Sable architecture is tracked in
+`aimindseye/sableos:docs/adr/0010-keyboard-first-sableos-design-v1.md`; this
+checklist remains the device-evidence side of that contract.
 
 Titan 2 and Titan 2 Elite are always independent evidence targets. Do not copy a
 PASS from one device to the other.
+
+
+## Progress snapshot — Titan 2 (2026-09-25)
+
+Status labels in this table apply only to the **Titan 2** retail unit and stock
+V01.00.13 evidence. Titan 2 Elite remains an independent target.
+
+| Checklist area | Titan 2 status | Current boundary |
+| --- | --- | --- |
+| Tier 1 A. Physical keyboard event pipeline | **COMPLETE** | Stable Linux/Android mapping, driver ownership, side-key paths, wake boundary, keyboard illumination backend, `ff_key` fingerprint ownership, and native vendor key-404 synthesis are mapped sufficiently for the first Sable adapter. Exact stock-only preference/predicate parity is optional. |
+| Tier 1 B. Keyboard touch surface / mouse mode | **COMPLETE** | `touchPad` is a separate ABS_MT device; stock Mouse Mode is Android Mouse Keys layered above it. |
+| Tier 1 C. Display and input topology | **COMPLETE** | Primary and rear SubScreen topology, touch association, wake/lifecycle, brightness independence, notification presentation, security/display-group behavior, and rotation are characterized. Runtime display IDs remain explicitly non-stable. |
+| Tier 1 D. Stock keyboard/SubScreen ownership | **COMPLETE** | Kernel/vendor-framework/replaceable-policy boundaries are mapped, including keyboard light, programmable keys, Mouse Keys, SubScreen launcher/notifications, Kika policy, and vendor key-404 consumers. |
+| Titan 2 Elite Tier 1 arrival baseline | **NOT STARTED / WAITING FOR HARDWARE** | Must be captured independently before mutation; do not copy Titan 2 PASS results. |
+| Tier 2 E. Restore and deployment contract | **PARTIAL — stock/restore side substantially complete** | Stock firmware equivalence, restore-critical images, partition/LP topology, fastbootd, active-slot/AVB feasibility and restore sources are characterized. Still required: first bounded Sable deployment, final artifact choice from experiment, and explicit userdata-wipe determination. |
+| Tier 2 F. VINTF / vendor compatibility | **PARTIAL** | Stock Treble/vendor/VNDK/API/ABI baseline and compatibility feasibility are known. Still required: normalized first-Sable comparison of HAL/service availability against stock. |
+| Tier 2 G. AVB / rollback / security | **PARTIAL** | Bootloader/AVB feasibility work is complete enough for bring-up and stock vbmeta artifacts are captured. Still required for the checklist: normalized full security-capability inventory (KeyMint/Gatekeeper/StrongBox/biometric strength and any remaining rollback/key-rotation details) for a future security claim. |
+| Tier 2 H. Camera | **PARTIAL — normal-app path complete** | Ordinary-app topology/probe and Sable Camera main/front/JPEG/DNG work are complete. Remaining controlled phase: SYSTEM_CAMERA-capable hidden tele/logical-camera access and negative third-party discovery tests if that capability is adopted. |
+| Tier 2 I. Telephony / IMS | **NOT STARTED as checklist baseline** | SIM/carrier-specific data, voice, SMS/MMS, IMS, VoLTE/VoWiFi, APN, dual-SIM and call-audio baseline still required. |
+| Tier 2 J. Audio | **NOT STARTED as checklist baseline** | Earpiece, speaker, microphones, Bluetooth, USB audio, FM, haptics and call/camera routing baseline still required. |
+| Tier 2 K. Fingerprint, sensors, NFC and GNSS | **PARTIAL / INCIDENTAL ONLY** | Fingerprint kernel/input ownership has incidental evidence from keyboard work. Full behavior + HAL/service inventory for fingerprint, sensors, NFC, GNSS, IR and USB OTG remains. |
+| Tier 2 L. Power / thermal / suspend | **PARTIAL** | Keyboard/SubScreen wake and screen-off key behavior are characterized. Charging/health policy, broad suspend/deep-idle, thermal zones/throttling and battery/Health HAL baseline remain. |
+| Acceptance matrix | **PARTIAL** | Stock evidence can now be filled for boot feasibility, display/touch, keyboard/pointer/IME, SubScreen and normal-app camera. Every **First Sable N0** cell remains unproven until a Sable artifact is actually deployed. |
+
+### Current research stop boundary
+
+For Titan 2, do **not** continue broad keyboard/SubScreen reverse engineering before
+the first Sable adapter/N0 experiment. Tier 1 answered the safety and ownership
+questions it was intended to answer.
+
+The next highest-value work is:
+
+1. turn the completed keyboard/display contracts into the Titan 2 Sable device
+   adapter;
+2. finish the explicit Tier 2 E first-deployment contract and perform the first
+   bounded Sable N0 experiment;
+3. use that boot to populate the first-Sable side of the acceptance matrix and
+   drive only evidence-based follow-up;
+4. in parallel, capture stock telephony/audio/sensors/power baselines before
+   those subsystems are needed for N0 parity;
+5. keep Titan 2 Elite entirely pending until the physical unit can be qualified
+   independently.
 
 ## Evidence discipline
 
@@ -120,6 +164,33 @@ For Titan 2 Elite also test:
 The SableOS design should not depend on Kika or another IME for hardware
 pointer/key events that properly belong in the platform input adapter.
 
+Normalize the evidence into a capability record rather than only a model-name
+description. Record independently:
+
+```text
+physical key matrix
+modifier keys
+programmable keys
+repeat / wake behavior
+keyboard backlight capability
+
+pointer/touch surface:
+  relative or absolute
+  X/Y scroll
+  tap/click/long-press
+  swipe
+  multi-zone / gesture-select
+  surface location:
+    keyboard matrix
+    separate trackpad
+    toolbelt/auxiliary surface
+    other
+```
+
+Do not infer that a future Q27-style toolbelt/trackpad and the Titan keyboard
+touch surface expose the same event topology merely because both can move a
+cursor.
+
 ### C. Display and input topology
 
 For both devices capture:
@@ -152,6 +223,28 @@ whether input remains active when rear display is disabled
 This evidence should drive a display profile; do not hard-code "Titan 2 means
 display 1".
 
+Also create an application-compatibility sample set for the unusual display
+geometry. For each selected app capture:
+
+```text
+package + version
+native physical/logical display metrics
+reported app/window bounds
+reported density / smallest width
+orientation
+insets / cutout behavior
+screenshots of useful and broken states
+whether Android already applies size-compat / letterbox behavior
+touch-coordinate correctness
+keyboard-focus/navigation correctness
+```
+
+Include a mix of Sable first-party apps and third-party apps known to stress
+compact/square layouts. The goal is evidence for future per-app **Sable App
+Display Profiles** supporting native/full-screen, aspect presets, custom logical
+W x H and optional logical density. Do not use foreground-driven global
+`wm size` changes as the target architecture.
+
 ### D. Stock keyboard/subscreen implementation ownership
 
 Inventory stock packages, privileged permissions, services, overlays and native
@@ -176,6 +269,53 @@ Sable-owned presentation behavior
 
 This prevents SableOS from replacing a UI package and accidentally deleting the
 only owner of a hardware capability.
+
+### D2. Notification and attention surfaces
+
+Keyboard-first SableOS will expose notification configuration and triage as a
+first-class surface, so capture the stock/device-specific attention capabilities
+before replacing presentation.
+
+For both Titan 2 and Titan 2 Elite record:
+
+- Android notification channel/category configuration behavior;
+- conversation/priority notification behavior where exposed;
+- lockscreen visibility/redaction behavior;
+- notification shade keyboard navigation, if any;
+- notification snooze/dismiss/reply behavior;
+- vibration and notification-sound ownership;
+- any status/notification LED;
+- keyboard-backlight behavior tied to notifications, if any;
+- doze/AOD notification presentation, if any;
+- vendor services/settings that own hardware attention behavior.
+
+For Titan 2, additionally characterize rear SubScreen notification behavior:
+
+```text
+which notification categories appear
+content redaction while locked
+tap/action behavior
+reply support if any
+wake behavior
+timeout
+per-app allow/block configuration
+relationship to main-display notification state
+relationship to DND / channel importance
+```
+
+Normalize proven outputs as capabilities rather than Titan-specific assumptions:
+
+```text
+notification.output.status_led
+notification.output.keyboard_backlight
+notification.output.secondary_display
+notification.output.haptic
+notification.output.audio
+notification.output.always_on_display
+```
+
+Only controls backed by physical evidence should appear in the eventual Titan
+device profile.
 
 ## Tier 1 for Titan 2 Elite arrival
 
@@ -376,9 +516,12 @@ Use the same column set for Titan 2 and Elite:
 | --- | --- | --- | --- | --- |
 | boot/adb | | | | |
 | display/touch | | | | |
+| per-app display-profile compatibility | | | | |
 | physical keyboard | | | | |
-| keyboard pointer/mouse | | | | |
+| keyboard pointer/input surface | | | | |
 | IME/text entry | | | | |
+| notification policy / keyboard triage | | | | |
+| hardware notification outputs | | | | |
 | rear SubScreen (Titan 2) | | | | |
 | Wi-Fi | | | | |
 | Bluetooth | | | | |
@@ -404,3 +547,8 @@ bounded experiment.
 
 Conversely, do not mutate a device merely because a community GSI worked.
 SableOS requires its own restore, artifact, serial-binding and evidence contract.
+
+Discord, Facebook and prototype/community reports are test leads, not repository
+hardware facts. Convert a claim into this checklist or another normative device
+record only after it is reproduced on the relevant retail device/firmware or
+supported by inspectable source/firmware evidence.
