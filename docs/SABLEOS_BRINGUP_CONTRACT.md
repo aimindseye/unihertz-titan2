@@ -4,7 +4,7 @@ This is the handoff from bounded Titan 2 research into future SableOS work.
 
 **Research status:** complete  
 **Bring-up decision:** GO  
-**Execution status:** ACTIVE — Pixel 7 Release 9 is frozen; Titan 2 Tier 2/N0 preflight is in progress
+**Execution status:** ACTIVE — Panther R9 is the frozen touch-first reference; keyboard-first Titan 2 Tier 2/N0 work is active
 
 ```text
 DEVICE=titan2
@@ -50,6 +50,14 @@ SABLEOS_BRINGUP_STATUS=ACTIVE_TIER2_N0_PREFLIGHT
 TITAN2_BUILD_TARGET=REQUIRED
 TITAN2_SABLE_ARTIFACT=NOT_BUILT
 PIXEL7_ARTIFACT_REUSABLE_FOR_TITAN2=NO
+
+SABLEOS_R9_PANTHER_REFERENCE=COMPLETE
+PUBLIC_BUILD_FOUNDATION=MERGED
+PUBLIC_BUILD_SELF_TEST=MERGED
+TITAN2_N0_DEVICE_ADAPTER=NOT_STARTED
+TITAN2_N0_ARTIFACT=ABSENT
+FIRST_SABLE_BOOT=BLOCKED_ON_ARTIFACT
+TIER2_STOCK_BASELINE=ACTIVE
 ```
 
 ## What "authorized" means
@@ -104,12 +112,13 @@ Before flashing SableOS or a generic system image:
 
 ## Resume point
 
-Do not reopen broad Titan 2 research after the Pixel 7 work.
+Do not reopen broad Titan 2 research. Panther R9 is already frozen as the
+touch-first reference; it is not a prerequisite still waiting to complete.
 
 Resume with:
 
 ```text
-SableOS Release 9 validated on Pixel 7
+Panther R9 frozen touch-first reference
     ↓
 define Titan 2 SableOS system/framework target
     ↓
