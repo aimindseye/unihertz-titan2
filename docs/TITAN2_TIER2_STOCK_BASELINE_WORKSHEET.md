@@ -1,6 +1,6 @@
 # Titan 2 Tier 2 stock functional baseline worksheet
 
-Status: **active — automated stock runtime captured; K/J/I/L classified; M complete; D2-lite remains**
+Status: **active — automated stock runtime captured; K/J/I/L classified; M complete; D2-lite partial (notification haptic remains)**
 
 The automated Tier 2 collector records framework/HAL/service state. This
 worksheet captures user-visible behavior that static dumps cannot prove.
@@ -449,18 +449,63 @@ notification triage and Sable Hub.
 
 | Capability / behavior | Result | Notes |
 | --- | --- | --- |
-| lockscreen notification redaction | PENDING | |
-| notification dismiss | PENDING | |
-| notification reply where supported | PENDING / N/A | |
-| keyboard reachability in notification shade | PENDING | |
-| notification.output.secondary_display | PENDING | |
-| notification.output.haptic | PENDING | |
-| notification.output.audio | PENDING | |
-| notification.output.keyboard_backlight | PENDING / NOT_PRESENT | |
-| notification.output.status_led | PENDING / NOT_PRESENT | |
-| notification.output.always_on_display | PENDING / NOT_PRESENT | |
+| lockscreen notification redaction | PASS | manual locked-state redaction behavior verified |
+| notification dismiss | PASS | manual dismiss verified |
+| notification reply where supported | PASS | inline reply verified on a supported notification |
+| keyboard reachability in notification shade | PASS | manual keyboard reachability verified |
+| notification.output.secondary_display | PASS | rear SubScreen notification presentation verified |
+| notification.output.haptic | NOT_CONFIGURED | notification vibration was not configured in this test; hardware haptics are separately PASS in J |
+| notification.output.audio | PASS | notification sound verified |
+| notification.output.keyboard_backlight | NOT_PRESENT | no notification-driven keyboard-backlight output observed |
+| notification.output.status_led | NOT_PRESENT | no status/notification LED behavior present in tested stock configuration |
+| notification.output.always_on_display | NOT_PRESENT | no AOD notification output present in tested stock configuration |
 
 Do not reopen broad SubScreen/vendor-framework reverse engineering for D2-lite.
+
+Minimum normalized D2-lite detail:
+
+```text
+lockscreen_notification_redaction=PASS|FAIL|NOT_CONFIGURED
+notification_dismiss=PASS|FAIL
+notification_reply=PASS|FAIL|NOT_AVAILABLE
+notification_keyboard_reachability=PASS|FAIL
+notification_secondary_display=PASS|FAIL|NOT_PRESENT
+notification_haptic=PASS|FAIL|NOT_CONFIGURED
+notification_audio=PASS|FAIL|NOT_CONFIGURED
+notification_keyboard_backlight=PASS|FAIL|NOT_PRESENT
+notification_status_led=PASS|FAIL|NOT_PRESENT
+notification_always_on_display=PASS|FAIL|NOT_PRESENT
+
+TITAN2_TIER2_D2_LITE_STOCK_BASELINE=PASS|PARTIAL
+```
+
+Current normalized D2-lite status (2026-09-26):
+
+```text
+lockscreen_notification_redaction=PASS
+notification_dismiss=PASS
+notification_reply=PASS
+notification_keyboard_reachability=PASS
+notification_secondary_display=PASS
+notification_haptic=NOT_CONFIGURED
+notification_audio=PASS
+notification_keyboard_backlight=NOT_PRESENT
+notification_status_led=NOT_PRESENT
+notification_always_on_display=NOT_PRESENT
+
+TITAN2_TIER2_D2_LITE_STOCK_BASELINE=PARTIAL
+
+BUILD=Titan 2_V01.00.13
+ACTIVE_SLOT=a
+LOCK_STATE=unlocked
+MUTATION_LEVEL=USER_SETTING_CHANGE
+PRIVATE_IDENTIFIERS_REDACTED=YES
+```
+
+D2-lite remains PARTIAL only because notification-specific vibration/haptic
+routing was not configured and therefore not exercised. General device haptics
+are already verified under J; this remaining item is specifically the
+notification-to-haptic path.
 
 ## Final minimum normalized output
 
