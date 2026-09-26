@@ -11,6 +11,7 @@ adapters, keyboard-first UI and N0 acceptance, use:
 - [SableOS bring-up contract](docs/SABLEOS_BRINGUP_CONTRACT.md)
 - [Titan 2 Tier 2 / first Sable N0 runbook](docs/TITAN2_TIER2_RUNBOOK.md)
 - [Titan 2 N0 acceptance matrix](docs/TITAN2_N0_ACCEPTANCE_MATRIX.md)
+- [Titan 2 Tier 2 stock functional baseline worksheet](docs/TITAN2_TIER2_STOCK_BASELINE_WORKSHEET.md)
 
 The checklist prioritizes input-event mapping, display/input topology, stock
 keyboard/SubScreen ownership and an independent Titan 2 Elite factory baseline
