@@ -325,10 +325,10 @@ untested capabilities, not failures.
 | Test | Result | Notes |
 | --- | --- | --- |
 | USB charging | PARTIAL | USB power input observed while battery was already at 100%; a below-full charge-rise test is still needed for a clean functional PASS |
-| fast/alternate charging mode if exposed | PENDING / N/A | |
-| 80% / battery-health policy if exposed | PENDING / N/A | |
+| fast/alternate charging mode if exposed | NOT_AVAILABLE | no distinct user-visible alternate/fast charging mode found in stock settings |
+| 80% / battery-health policy if exposed | NOT_AVAILABLE | stock Battery Saver exposes 'Turn off at 90%' for Battery Saver itself, and Adaptive Battery manages app drain; neither is a charge-limit/battery-health charging policy |
 | screen-off idle enters expected suspend/deep idle | PASS | phone was unplugged for >20 minutes; post-idle ADB capture was taken after USB reconnect, so current mCharging=true reflects capture-time state. DeviceIdle history records a deep-idle event ~31m55s before capture, consistent with the unplugged interval. |
-| expected wake via Power | PENDING | |
+| expected wake via Power | PASS | manual screen-off Power-button wake verified |
 | expected wake via Func1 | PASS baseline already characterized | rear-display policy |
 | Func2 screen-off behavior | PASS baseline already characterized | active without visible display wake |
 | TitanKey screen-off behavior | PASS baseline already characterized | matrix non-waking on stock DT |
@@ -359,10 +359,10 @@ Current normalized L status (2026-09-26):
 
 ```text
 usb_charging=PENDING_BELOW_FULL_TEST
-alternate_charging=PENDING
-battery_health_policy=PENDING
+alternate_charging=NOT_AVAILABLE
+battery_health_policy=NOT_AVAILABLE
 suspend_deep_idle=PASS
-power_button_wake=PENDING
+power_button_wake=PASS
 func1_wake=PASS
 func2_screen_off_behavior=PASS
 titankey_screen_off_behavior=PASS
@@ -379,7 +379,7 @@ MUTATION_LEVEL=USER_SETTING_CHANGE
 PRIVATE_IDENTIFIERS_REDACTED=YES
 ```
 
-The phone was unplugged for more than 20 minutes before the post-idle capture. USB power and `mCharging=true` in the saved post-idle dump reflect reconnecting the cable to run ADB. DeviceIdle history contains a deep-idle event about 31m55s before capture, consistent with that unplugged interval, so natural stock deep-idle entry is accepted as PASS. Below-full charging progression remains unqualified because the charging snapshots were taken at 100%.
+The phone was unplugged for more than 20 minutes before the post-idle capture. USB power and `mCharging=true` in the saved post-idle dump reflect reconnecting the cable to run ADB. DeviceIdle history contains a deep-idle event about 31m55s before capture, consistent with that unplugged interval, so natural stock deep-idle entry is accepted as PASS. Power-button wake is also verified. Stock settings expose Battery Saver and Adaptive Battery behavior but no separate charge-limit/battery-health charging policy or alternate charging mode. Below-full charging progression remains unqualified because the charging snapshots were taken at 100%.
 
 ## M. Wi-Fi / Bluetooth connectivity baseline
 
