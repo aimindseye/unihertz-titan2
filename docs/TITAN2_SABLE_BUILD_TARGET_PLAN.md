@@ -1,6 +1,6 @@
 # Titan 2 SableOS build-target plan
 
-Status: **ACTIVE — Titan 2 artifact does not exist yet; build-target definition precedes E3**
+Status: **ACTIVE NEXT PHASE — Tier 2 is COMPLETE; Titan 2 Sable build-target definition and first artifact now precede E3**
 
 The existing SableOS Release 9 artifact was built for Pixel 7 / Panther. It must
 not be used as the Titan 2 N0 artifact.
@@ -8,7 +8,7 @@ not be used as the Titan 2 N0 artifact.
 Titan 2 bring-up therefore splits into two tracks:
 
 1. define and build a Titan 2-compatible Sable userspace/system target;
-2. only then resume Tier 2 E3 artifact preflight and first deployment.
+2. then run E3 artifact preflight and first deployment as the first-Sable N0 phase; Tier 2 stock qualification is already complete.
 
 ## Non-goals
 
