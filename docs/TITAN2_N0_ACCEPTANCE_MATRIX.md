@@ -1,8 +1,11 @@
 # Titan 2 N0 acceptance matrix
 
-Status: **stock evidence partially populated; all first-Sable N0 results pending**
+Status: **TIER 2 STOCK QUALIFICATION COMPLETE; all first-Sable N0 results pending**
 
-This matrix is the working acceptance record for Tier 2 bring-up. "Stock"
+Completion note: stock rows that retain PARTIAL wording document bounded
+environment/carrier/deferred evidence gaps; they do not keep Tier 2 open.
+
+This matrix is the working acceptance record carried forward from the completed Tier 2 stock qualification into first-Sable N0 validation. "Stock"
 means the documented Titan 2 V01.00.13 baseline. "First Sable N0" remains
 unproven until an actual Sable artifact is deployed.
 
