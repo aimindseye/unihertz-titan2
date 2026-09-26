@@ -14,19 +14,19 @@ unproven until an actual Sable artifact is deployed.
 | keyboard pointer / touch surface | **PASS baseline** — separate Synaptics ABS_MT touchPad; stock Mouse Keys is framework policy | **PENDING** | **YES** — classify/preserve touchPad independently | TBD |
 | IME / text entry | **PASS baseline** — base character/modifier behavior known; Kika-specific composition is replaceable | **PENDING** | device keymap/KCM may be needed; Kika dependency must not be required | TBD |
 | rear SubScreen | **PASS baseline** — 410x502 display, rear touch, lifecycle, wake, rotation, brightness independence and security/group behavior mapped | **PENDING** | **YES** — Titan-specific secondary-display/presentation profile | TBD |
-| Wi-Fi | service state capture pending final stock Tier 2 baseline | **PENDING** | TBD | TBD |
-| Bluetooth | service state capture pending final stock Tier 2 baseline | **PENDING** | TBD | TBD |
-| cellular data | **PENDING stock functional baseline** | **PENDING** | TBD | TBD |
-| voice / IMS | **PENDING stock functional baseline** | **PENDING** | TBD | TBD |
-| SMS / MMS | **PENDING stock functional baseline** | **PENDING** | TBD | TBD |
-| audio | **PENDING stock functional baseline** | **PENDING** | TBD | TBD |
+| Wi-Fi | **AUTOMATED CAPTURED** — final stock runtime network/service state saved; functional behavior not promoted to PASS by this capture alone | **PENDING** | TBD | TBD |
+| Bluetooth | **AUTOMATED CAPTURED** — final stock runtime network/service state saved; functional behavior not promoted to PASS by this capture alone | **PENDING** | TBD | TBD |
+| cellular data | **AUTOMATED CAPTURED / MANUAL PENDING** — telephony service state saved; functional data test still required | **PENDING** | TBD | TBD |
+| voice / IMS | **AUTOMATED CAPTURED / MANUAL PENDING** — telephony/IMS service state saved; call and IMS behavior still required | **PENDING** | TBD | TBD |
+| SMS / MMS | **AUTOMATED CAPTURED / MANUAL PENDING** — telephony service state saved; send/receive behavior still required | **PENDING** | TBD | TBD |
+| audio | **AUTOMATED CAPTURED / MANUAL PENDING** — audio framework/service state saved; playback/recording/routing behavior still required | **PENDING** | TBD | TBD |
 | camera | **PASS normal-app baseline** — public rear/front, high-res JPEG and rear DNG proven; hidden tele/logical topology known | **PENDING** | likely camera device profile; privileged hidden-camera path only if adopted | TBD |
-| fingerprint | **PARTIAL stock baseline** — FocalTech driver/gesture helper ownership known; full auth/HAL behavior capture pending | **PENDING** | TBD | TBD |
-| sensors | **PENDING stock functional baseline** | **PENDING** | TBD | TBD |
-| NFC | **PENDING stock functional baseline** | **PENDING** | TBD | TBD |
-| GNSS | **PENDING stock functional baseline** | **PENDING** | TBD | TBD |
-| suspend / power | **PARTIAL stock baseline** — keyboard/SubScreen screen-off/wake behavior known | **PENDING** | likely explicit Titan wake policy | TBD |
-| charging / health / thermal | **PENDING stock functional baseline** | **PENDING** | TBD | TBD |
+| fingerprint | **PARTIAL** — FocalTech ownership known and automated security/sensor service state saved; enroll/authenticate behavior still pending | **PENDING** | TBD | TBD |
+| sensors | **AUTOMATED CAPTURED / MANUAL PENDING** — sensor service inventory saved; functional sensor checks still required | **PENDING** | TBD | TBD |
+| NFC | **AUTOMATED CAPTURED / MANUAL PENDING** — NFC-related service/feature evidence saved; enable/tag-read test still required | **PENDING** | TBD | TBD |
+| GNSS | **AUTOMATED CAPTURED / MANUAL PENDING** — location/GNSS service evidence saved; real fix/tracking test still required | **PENDING** | TBD | TBD |
+| suspend / power | **PARTIAL** — keyboard/SubScreen wake behavior known and automated power state captured; manual deep-idle/suspend behavior still required | **PENDING** | likely explicit Titan wake policy | TBD |
+| charging / health / thermal | **AUTOMATED CAPTURED / MANUAL PENDING** — power/thermal/Health service evidence saved; charging policy and bounded thermal behavior still required | **PENDING** | TBD | TBD |
 
 ## N0 minimum success gate
 
