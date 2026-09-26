@@ -22,7 +22,7 @@ Bounded device research for a future SableOS Titan 2 bring-up, plus focused appl
 
 ## Status
 
-**Core Titan 2 boot/firmware research is closed, Tier 1 keyboard/display ownership is complete, and SableOS Tier 2 / first-N0 preflight is active. Panther R9 is the frozen touch-first reference; active development is the keyboard-first Titan N0 sequence.**
+**Core Titan 2 boot/firmware research is closed, Tier 1 is complete, and the bounded Titan 2 Tier 2 stock qualification is COMPLETE. The active engineering phase is now the Titan 2 SableOS build target / first-N0 artifact; first-Sable deployment remains gated.**
 
 ```text
 T2-R0  Factory baseline                         CLOSED
@@ -31,7 +31,7 @@ T2-R2  Bootloader / AVB / GSI feasibility      CLOSED
 T2-R3  SableOS feasibility decision            GO / CLOSED
 
 T2-R4  Tier 1 keyboard/display/ownership             CLOSED
-T2-B0  Tier 2 restore/VINTF/security/N0 preflight    ACTIVE
+T2-B0  Tier 2 stock qualification / N0 preflight   COMPLETE
 
 SABLEOS_R9_PANTHER_REFERENCE=COMPLETE
 PUBLIC_BUILD_FOUNDATION=MERGED
@@ -39,7 +39,7 @@ PUBLIC_BUILD_SELF_TEST=MERGED
 TITAN2_N0_DEVICE_ADAPTER=NOT_STARTED
 TITAN2_N0_ARTIFACT=ABSENT
 FIRST_SABLE_BOOT=BLOCKED_ON_ARTIFACT
-TIER2_STOCK_BASELINE=ACTIVE
+TIER2_STOCK_BASELINE=COMPLETE
 
 DO NOT REOPEN BROAD TIER 1 REVERSE ENGINEERING
 
@@ -143,7 +143,7 @@ Firmware/image corpora are maintained separately on `ai-g732` and are not commit
 
 ## Near-term plan
 
-Tier 1 research is parked. The active OS track is Tier 2 / first-N0 preflight; no non-stock image is written until the exact Sable artifact, AVB action, LP sizing and userdata policy have been reviewed.
+Tier 1 and the bounded Tier 2 stock qualification are complete. The active OS track is now the Titan 2 Sable build target and first-N0 artifact. No non-stock image is written until the exact Sable artifact, AVB action, LP sizing and userdata policy have been reviewed.
 
 ```text
 camera:
