@@ -171,17 +171,17 @@ is recorded under I so the route result is tied to the same carrier/IMS call.
 
 | Test | Result | Notes |
 | --- | --- | --- |
-| media loudspeaker | PENDING | |
-| earpiece outside call if meaningfully testable | PENDING / N/A | |
-| primary microphone recording | PENDING | |
-| secondary/noise-cancel microphone behavior | PENDING | |
-| camera video audio | PENDING | |
-| Bluetooth media | PENDING / N/A | |
-| USB audio output | PENDING / N/A | |
-| USB audio input | PENDING / N/A | |
-| FM radio path | PENDING / N/A | |
-| vibration / haptics | PENDING | |
-| route change speaker -> BT -> speaker | PENDING / N/A | |
+| media loudspeaker | PASS | manual playback verified |
+| earpiece outside call if meaningfully testable | N/A | in-call receiver behavior is owned by Tier 2 I; stock Factory Test exposes a Receiver check |
+| primary microphone recording | PASS | manual recording / stock Factory Test Microphone1 verified |
+| secondary/noise-cancel microphone behavior | PASS | stock Factory Test Microphone2 verified |
+| camera video audio | PASS | manual camera-video audio verified |
+| Bluetooth media | PASS | paired Bluetooth speaker media playback verified |
+| USB audio output | PASS | manual USB audio output verified |
+| USB audio input | PASS | manual USB audio input verified |
+| FM radio path | PASS | manual FM path verified |
+| vibration / haptics | PASS | manual behavior / stock Factory Test Vibrator verified |
+| route change speaker -> BT -> speaker | PASS | media route transition verified |
 
 Minimum normalized J detail:
 
@@ -199,6 +199,36 @@ media_route_switch=PASS|FAIL|NOT_AVAILABLE|NOT_TESTED
 
 TITAN2_TIER2_J_STOCK_BASELINE=PASS|PARTIAL
 ```
+
+Current normalized J status (2026-09-26):
+
+```text
+media_loudspeaker=PASS
+primary_microphone=PASS
+secondary_microphone=PASS
+camera_video_audio=PASS
+bluetooth_media=PASS
+usb_audio_output=PASS
+usb_audio_input=PASS
+fm_radio=PASS
+haptics=PASS
+media_route_switch=PASS
+
+TITAN2_TIER2_J_STOCK_BASELINE=PASS
+
+BUILD=Titan 2_V01.00.13
+ACTIVE_SLOT=a
+LOCK_STATE=unlocked
+MUTATION_LEVEL=USER_SETTING_CHANGE
+PRIVATE_IDENTIFIERS_REDACTED=YES
+```
+
+Stock diagnostic compatibility evidence: dialing `*#*#3377#*#*` opens the
+retail Factory Test suite. Its Single Test surface exposes dedicated checks for
+Vibrator, LoudSpeaker, Receiver, Microphone1, Microphone2, Gravity Sensor, Gyro,
+Compass, TouchPanel, TouchPad, LCD, BackLED, keyboard light and other hardware.
+SableOS should preserve an equivalent local diagnostic capability; see the
+build-target plan for the compatibility requirement.
 
 ## I. Telephony / IMS
 
