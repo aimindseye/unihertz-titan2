@@ -92,7 +92,7 @@ needed to interpret it.
 | accelerometer | PASS | manual behavior verified |
 | gyroscope | PASS | manual behavior verified |
 | compass / magnetometer | PASS | manual behavior verified |
-| proximity sensor | PENDING | defer final behavior check to normal voice-call test in Tier 2 I |
+| proximity sensor | PASS | normal voice-call near-ear display-off / away display-on behavior verified in Tier 2 I |
 | ambient-light sensor | PASS | manual behavior verified |
 | NFC enable / tag read | PASS | stock NFC feature present; tag read verified |
 | GNSS first fix | PASS | Factory Test -> YGPS exercised; private coordinates not committed |
@@ -144,7 +144,7 @@ sensorservice_inventory=PASS
 accelerometer_behavior=PASS
 gyro_behavior=PASS
 compass_behavior=PASS
-proximity_behavior=PENDING
+proximity_behavior=PASS
 ambient_light_behavior=PASS
 nfc_tag_read=PASS
 gnss_first_fix=PASS
@@ -162,7 +162,7 @@ MUTATION_LEVEL=USER_SETTING_CHANGE
 PRIVATE_IDENTIFIERS_REDACTED=YES
 ```
 
-K remains PARTIAL because proximity behavior is deferred to the normal-call test in I and sustained GNSS tracking was not run in a suitable RF environment. This is an evidence gap, not a recorded GNSS failure.
+K remains PARTIAL only because sustained GNSS tracking was not run in a suitable RF environment. Proximity behavior is now closed by the Tier 2 I normal-call test. The GNSS gap is an evidence limitation, not a recorded device failure.
 
 ## J. Audio / haptics
 
@@ -244,22 +244,22 @@ LTE/5G coverage available:
 
 | Test | Result | Notes |
 | --- | --- | --- |
-| SIM recognized | PENDING | |
-| mobile data | PENDING | |
-| LTE registration | PENDING | |
-| 5G NSA (if available) | PENDING / N/A | |
-| 5G SA (if available) | PENDING / N/A | |
-| outgoing normal voice call | PENDING | use a normal non-emergency number |
-| incoming normal voice call | PENDING | |
-| SMS send / receive | PENDING | |
-| MMS send / receive | PENDING | |
-| IMS registered | PENDING | |
-| VoLTE | PENDING | |
-| VoWiFi | PENDING / N/A | |
-| dual-SIM data/voice behavior | PENDING / N/A | |
-| call audio earpiece | PENDING | |
-| call audio loudspeaker | PENDING | |
-| call audio Bluetooth | PENDING / N/A | |
+| SIM recognized | PASS | active SIM recognized |
+| mobile data | PASS | manual data connectivity verified |
+| LTE registration | PASS | manual LTE registration verified |
+| 5G NSA (if available) | NOT_TESTED | mode not qualified in this session |
+| 5G SA (if available) | NOT_TESTED | mode not qualified in this session |
+| outgoing normal voice call | PASS | normal non-emergency call verified |
+| incoming normal voice call | PASS | verified |
+| SMS send / receive | PASS | verified |
+| MMS send / receive | PASS | verified |
+| IMS registered | PASS | verified |
+| VoLTE | PASS | verified |
+| VoWiFi | PASS | verified |
+| dual-SIM data/voice behavior | NOT_TESTED | one-SIM test session |
+| call audio earpiece | PASS | verified during normal call |
+| call audio loudspeaker | PASS | verified during normal call |
+| call audio Bluetooth | PASS | call-capable Bluetooth route verified |
 
 Do **not** use emergency services as a test target.
 
@@ -286,22 +286,56 @@ call_audio_bluetooth=PASS|FAIL|NOT_AVAILABLE|NOT_TESTED
 TITAN2_TIER2_I_STOCK_BASELINE=PASS|PARTIAL
 ```
 
+Current normalized I status (2026-09-26):
+
+```text
+sim_recognized=PASS
+mobile_data=PASS
+lte_registration=PASS
+5g_nsa=NOT_TESTED
+5g_sa=NOT_TESTED
+outgoing_voice=PASS
+incoming_voice=PASS
+sms=PASS
+mms=PASS
+ims_registered=PASS
+volte=PASS
+vowifi=PASS
+dual_sim=NOT_TESTED
+call_audio_earpiece=PASS
+call_audio_loudspeaker=PASS
+call_audio_bluetooth=PASS
+proximity_behavior=PASS
+
+TITAN2_TIER2_I_STOCK_BASELINE=PARTIAL
+
+BUILD=Titan 2_V01.00.13
+ACTIVE_SLOT=a
+LOCK_STATE=unlocked
+MUTATION_LEVEL=USER_SETTING_CHANGE
+PRIVATE_IDENTIFIERS_REDACTED=YES
+```
+
+The tested single-SIM LTE/IMS path is healthy. I remains PARTIAL because 5G
+NSA/SA mode qualification and dual-SIM behavior were not exercised; those are
+untested capabilities, not failures.
+
 ## L. Power / thermal / suspend
 
 | Test | Result | Notes |
 | --- | --- | --- |
-| USB charging | PENDING | |
+| USB charging | PARTIAL | USB power input observed while battery was already at 100%; a below-full charge-rise test is still needed for a clean functional PASS |
 | fast/alternate charging mode if exposed | PENDING / N/A | |
 | 80% / battery-health policy if exposed | PENDING / N/A | |
-| screen-off idle enters expected suspend/deep idle | PENDING | |
+| screen-off idle enters expected suspend/deep idle | NOT_TESTED (charging) | capture remained USB-powered / mCharging=true, so DeviceIdle stayed ACTIVE; Doze/auto-suspend path was visible but natural unplugged deep idle was not qualified |
 | expected wake via Power | PENDING | |
 | expected wake via Func1 | PASS baseline already characterized | rear-display policy |
 | Func2 screen-off behavior | PASS baseline already characterized | active without visible display wake |
 | TitanKey screen-off behavior | PASS baseline already characterized | matrix non-waking on stock DT |
 | rear SubScreen idle/wake cost observation | PARTIAL | quantify only if needed |
-| thermal zones readable | AUTOMATED CAPTURED | saved power/thermal runtime group |
-| sustained load throttling behavior | PENDING | bounded test only |
-| battery / Health HAL service inventory | AUTOMATED CAPTURED | saved power runtime group |
+| thermal zones readable | PASS | thermal HAL returned CPU/GPU/NPU/SOC/skin/battery/USB/PA temperatures and thresholds with Thermal Status 0 |
+| sustained load throttling behavior | NOT_TESTED | bounded load test intentionally deferred |
+| battery / Health HAL service inventory | PASS | saved stock power runtime evidence plus current battery/charging state captured |
 
 Minimum normalized L detail:
 
@@ -320,6 +354,35 @@ health_hal_inventory=PASS
 
 TITAN2_TIER2_L_STOCK_BASELINE=PASS|PARTIAL
 ```
+
+Current normalized L status (2026-09-26):
+
+```text
+usb_charging=PENDING_BELOW_FULL_TEST
+alternate_charging=PENDING
+battery_health_policy=PENDING
+suspend_deep_idle=NOT_TESTED_CHARGING
+power_button_wake=PENDING
+func1_wake=PASS
+func2_screen_off_behavior=PASS
+titankey_screen_off_behavior=PASS
+thermal_inventory=PASS
+bounded_throttling=NOT_TESTED
+health_hal_inventory=PASS
+
+TITAN2_TIER2_L_STOCK_BASELINE=PARTIAL
+
+BUILD=Titan 2_V01.00.13
+ACTIVE_SLOT=a
+LOCK_STATE=unlocked
+MUTATION_LEVEL=USER_SETTING_CHANGE
+PRIVATE_IDENTIFIERS_REDACTED=YES
+```
+
+The captured session was USB-powered at 100% battery, so it proves USB power
+presence and a healthy Doze/auto-suspend/thermal stack but does not prove
+below-full charging progression or natural unplugged deep idle. Those must not
+be promoted to PASS from this capture alone.
 
 ## M. Wi-Fi / Bluetooth connectivity baseline
 
