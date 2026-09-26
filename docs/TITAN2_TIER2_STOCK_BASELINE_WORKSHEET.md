@@ -5,6 +5,35 @@ Status: **to be completed before corresponding N0 parity claims**
 The automated Tier 2 collector records framework/HAL/service state. This
 worksheet captures user-visible behavior that static dumps cannot prove.
 
+
+Automated stock runtime baseline: **CAPTURED 2026-09-26**.
+
+```text
+label=stock-pre-n0
+build=Titan 2_V01.00.13
+incremental=V01.00.13
+security_patch=2025-12-05
+slot=_a
+verified_boot=orange
+flash_locked=0
+selinux=Enforcing
+
+captured groups:
+  core       15 files
+  vintf       6 files
+  security    6 files
+  telephony   6 files
+  audio       4 files
+  sensors     6 files
+  power       7 files
+  camera      1 file
+  network     2 files
+```
+
+The collector was read-only and raw outputs remain private. This proves that the
+automated evidence set was captured; it does **not** turn the manual functional
+rows below into PASS results.
+
 Record the date, stock build, active carrier/SIM context where relevant, and
 whether a step changed device state. Keep phone numbers, ICCIDs, IMSIs, APNs
 containing account data, Wi-Fi identifiers and other private values out of
