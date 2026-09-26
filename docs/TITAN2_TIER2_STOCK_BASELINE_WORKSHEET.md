@@ -327,7 +327,7 @@ untested capabilities, not failures.
 | USB charging | PARTIAL | USB power input observed while battery was already at 100%; a below-full charge-rise test is still needed for a clean functional PASS |
 | fast/alternate charging mode if exposed | PENDING / N/A | |
 | 80% / battery-health policy if exposed | PENDING / N/A | |
-| screen-off idle enters expected suspend/deep idle | NOT_TESTED (charging) | capture remained USB-powered / mCharging=true, so DeviceIdle stayed ACTIVE; Doze/auto-suspend path was visible but natural unplugged deep idle was not qualified |
+| screen-off idle enters expected suspend/deep idle | PASS | phone was unplugged for >20 minutes; post-idle ADB capture was taken after USB reconnect, so current mCharging=true reflects capture-time state. DeviceIdle history records a deep-idle event ~31m55s before capture, consistent with the unplugged interval. |
 | expected wake via Power | PENDING | |
 | expected wake via Func1 | PASS baseline already characterized | rear-display policy |
 | Func2 screen-off behavior | PASS baseline already characterized | active without visible display wake |
@@ -361,7 +361,7 @@ Current normalized L status (2026-09-26):
 usb_charging=PENDING_BELOW_FULL_TEST
 alternate_charging=PENDING
 battery_health_policy=PENDING
-suspend_deep_idle=NOT_TESTED_CHARGING
+suspend_deep_idle=PASS
 power_button_wake=PENDING
 func1_wake=PASS
 func2_screen_off_behavior=PASS
@@ -379,10 +379,7 @@ MUTATION_LEVEL=USER_SETTING_CHANGE
 PRIVATE_IDENTIFIERS_REDACTED=YES
 ```
 
-The captured session was USB-powered at 100% battery, so it proves USB power
-presence and a healthy Doze/auto-suspend/thermal stack but does not prove
-below-full charging progression or natural unplugged deep idle. Those must not
-be promoted to PASS from this capture alone.
+The phone was unplugged for more than 20 minutes before the post-idle capture. USB power and `mCharging=true` in the saved post-idle dump reflect reconnecting the cable to run ADB. DeviceIdle history contains a deep-idle event about 31m55s before capture, consistent with that unplugged interval, so natural stock deep-idle entry is accepted as PASS. Below-full charging progression remains unqualified because the charging snapshots were taken at 100%.
 
 ## M. Wi-Fi / Bluetooth connectivity baseline
 
