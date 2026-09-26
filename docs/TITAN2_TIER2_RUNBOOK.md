@@ -50,8 +50,9 @@ script rather than assuming a generic `REPORT.txt` filename.
 | F stock-vs-Sable comparison | `tools/t2-tier2-compare-runtime.sh` | per-subsystem diffs between saved runtime captures |
 | N0 matrix | `docs/TITAN2_N0_ACCEPTANCE_MATRIX.md` | stock evidence vs first-Sable acceptance tracking |
 | manual stock parity worksheet | `docs/TITAN2_TIER2_STOCK_BASELINE_WORKSHEET.md` | functional observations that dumps cannot prove |
+| final normalized stock summary | `tools/t2-tier2-stock-summary.sh` | enforces K/J/I/L status + build/slot/lock/mutation/redaction output contract |
 
-## Current gate status — 2026-09-25
+## Current gate status — 2026-09-26
 
 ```text
 E0 restore verification      PASS
@@ -65,6 +66,12 @@ The validated fastbootd state is slot `a`, unlocked, no active snapshot update,
 and `super=0x240000000` (9 GiB). Sable Release 9 currently has only a Pixel 7 / Panther build; that artifact must not be used on Titan 2. The next step is the Titan 2 build target described in [TITAN2_SABLE_BUILD_TARGET_PLAN.md](TITAN2_SABLE_BUILD_TARGET_PLAN.md). E3 resumes only after a Titan 2 artifact exists.
 
 ## Phase 1 — stock runtime baseline
+
+**Status: CAPTURED 2026-09-26** for stock `Titan 2_V01.00.13`. The saved
+collector report records slot `a`, unlocked/orange verified boot, SELinux
+enforcing, and all expected core/VINTF/security/telephony/audio/sensors/power/
+camera/network groups. Re-run only when the stock build or relevant baseline
+state changes.
 
 With Android stock booted:
 
@@ -289,15 +296,54 @@ The saved diffs are the basis for Tier 2 F and the acceptance matrix.
 
 ## Tier 2 manual baselines
 
-Service dumps do not prove user-visible functionality. Before claiming stock
-parity, complete the manual worksheet for:
+Service dumps do not prove user-visible functionality. Use
+[TITAN2_TIER2_STOCK_BASELINE_WORKSHEET.md](TITAN2_TIER2_STOCK_BASELINE_WORKSHEET.md)
+in this bounded order:
 
-- telephony/IMS;
-- audio and routing;
-- fingerprint/sensors/NFC/GNSS/IR/USB OTG;
-- charging/suspend/thermal behavior.
+```text
+1. K — fingerprint / sensors / NFC / GNSS / IR / USB OTG
+2. J — audio / haptics (non-call)
+3. I — telephony / IMS + in-call audio routes
+4. L — power / thermal / suspend
+```
 
-Do not call emergency services as a test.
+Collect passive charging/thermal/idle observations during the earlier sections;
+save the explicit bounded throttling check for last. Also complete the small M
+Wi-Fi/Bluetooth connectivity and D2-lite notification/attention baselines.
+
+Do not call emergency services as a test. Keep carrier, subscriber, network,
+peer-device and private location identifiers out of committed results.
+
+After K/J/I/L are complete enough to classify, emit the required normalized
+summary with the helper. The helper itself only performs read-only ADB property
+reads; `T2_MUTATION_LEVEL` must describe the highest mutation level used by the
+manual test session:
+
+```bash
+export TITAN_SERIAL="$Titan2"
+
+T2_K_STATUS=PASS \
+T2_J_STATUS=PASS \
+T2_I_STATUS=PARTIAL \
+T2_L_STATUS=PASS \
+T2_MUTATION_LEVEL=USER_SETTING_CHANGE \
+  bash tools/t2-tier2-stock-summary.sh
+```
+
+Required summary contract:
+
+```text
+TITAN2_TIER2_K_STOCK_BASELINE=PASS|PARTIAL
+TITAN2_TIER2_J_STOCK_BASELINE=PASS|PARTIAL
+TITAN2_TIER2_I_STOCK_BASELINE=PASS|PARTIAL
+TITAN2_TIER2_L_STOCK_BASELINE=PASS|PARTIAL
+
+BUILD=<stock build>
+ACTIVE_SLOT=<a/b>
+LOCK_STATE=<locked/unlocked>
+MUTATION_LEVEL=READ_ONLY|USER_SETTING_CHANGE|STATE_CHANGING
+PRIVATE_IDENTIFIERS_REDACTED=YES
+```
 
 ## Stop / recovery conditions
 
