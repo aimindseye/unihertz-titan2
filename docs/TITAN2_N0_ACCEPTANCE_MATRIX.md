@@ -21,10 +21,10 @@ unproven until an actual Sable artifact is deployed.
 | SMS / MMS | **AUTOMATED CAPTURED / MANUAL PENDING** — telephony service state saved; send/receive behavior still required | **PENDING** | TBD | TBD |
 | audio | **AUTOMATED CAPTURED / MANUAL PENDING** — audio framework/service state saved; playback/recording/routing behavior still required | **PENDING** | TBD | TBD |
 | camera | **PASS normal-app baseline** — public rear/front, high-res JPEG and rear DNG proven; hidden tele/logical topology known | **PENDING** | likely camera device profile; privileged hidden-camera path only if adopted | TBD |
-| fingerprint | **PARTIAL** — FocalTech ownership known and automated security/sensor service state saved; enroll/authenticate behavior still pending | **PENDING** | TBD | TBD |
-| sensors | **AUTOMATED CAPTURED / MANUAL PENDING** — sensor service inventory saved; functional sensor checks still required | **PENDING** | TBD | TBD |
-| NFC | **AUTOMATED CAPTURED / MANUAL PENDING** — NFC-related service/feature evidence saved; enable/tag-read test still required | **PENDING** | TBD | TBD |
-| GNSS | **AUTOMATED CAPTURED / MANUAL PENDING** — location/GNSS service evidence saved; real fix/tracking test still required | **PENDING** | TBD | TBD |
+| fingerprint | **PASS stock baseline** — FocalTech ownership known; FingerprintProvider sensor 5 present; enrollment and manual unlock/authentication verified; 0 HAL deaths observed in captured state | **PENDING** | TBD | TBD |
+| sensors | **PARTIAL** — sensor inventory plus accelerometer, gyroscope, compass and ambient-light behavior verified; proximity behavior remains cross-linked to normal-call testing | **PENDING** | TBD | TBD |
+| NFC | **PASS stock baseline** — NFC features advertised and manual tag-read behavior verified | **PENDING** | TBD | TBD |
+| GNSS | **PARTIAL** — stock Factory Test/YGPS path verified and first fix recorded; sustained steady-tracking interval remains pending | **PENDING** | TBD | TBD |
 | suspend / power | **PARTIAL** — keyboard/SubScreen wake behavior known and automated power state captured; manual deep-idle/suspend behavior still required | **PENDING** | likely explicit Titan wake policy | TBD |
 | charging / health / thermal | **AUTOMATED CAPTURED / MANUAL PENDING** — power/thermal/Health service evidence saved; charging policy and bounded thermal behavior still required | **PENDING** | TBD | TBD |
 
