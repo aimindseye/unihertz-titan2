@@ -6,6 +6,7 @@ For research that directly feeds SableOS Titan 2 / Titan 2 Elite device
 adapters, keyboard-first UI and N0 acceptance, use:
 
 - [Titan family SableOS research checklist](docs/TITAN_FAMILY_SABLEOS_RESEARCH_CHECKLIST.md)
+- [SableOS Treble portability handoff](docs/SABLEOS_TREBLE_PORTABILITY_HANDOFF.md)
 - [Camera research](docs/CAMERA_RESEARCH.md)
 - [Physical-keyboard app research](docs/KEYBOARD_APP_RESEARCH.md)
 - [SableOS bring-up contract](docs/SABLEOS_BRINGUP_CONTRACT.md)
@@ -13,12 +14,10 @@ adapters, keyboard-first UI and N0 acceptance, use:
 - [Titan 2 N0 acceptance matrix](docs/TITAN2_N0_ACCEPTANCE_MATRIX.md)
 - [Titan 2 Tier 2 stock functional baseline worksheet](docs/TITAN2_TIER2_STOCK_BASELINE_WORKSHEET.md)
 
-The checklist prioritizes input-event mapping, display/input topology, stock
-keyboard/SubScreen ownership and an independent Titan 2 Elite factory baseline
-before additional broad firmware reverse engineering.
-
-
-Bounded device research for a future SableOS Titan 2 bring-up, plus focused application research for physical-keyboard phones.
+The Titan 2 research track has answered the bounded safety and ownership
+questions needed to start SableOS N0_A16 build-target work. Further work should
+focus on artifact build, E3 preflight and first-Sable acceptance rather than
+another broad stock reverse-engineering pass.
 
 ## Status
 
@@ -29,9 +28,18 @@ T2-R0  Factory baseline                         CLOSED
 T2-R1  Firmware + partition + recovery closure CLOSED
 T2-R2  Bootloader / AVB / GSI feasibility      CLOSED
 T2-R3  SableOS feasibility decision            GO / CLOSED
+T2-R4  Keyboard/display/SubScreen ownership    CLOSED_FOR_N0
+T2-B0  Tier 2 stock qualification / N0 preflight COMPLETE
 
-T2-R4  Tier 1 keyboard/display/ownership             CLOSED
-T2-B0  Tier 2 stock qualification / N0 preflight   COMPLETE
+DO NOT REOPEN BROAD DEVICE RESEARCH
+
+SableOS next step:
+  TITAN2_N0_A16 build-target strategy
+  -> AOSP16 clean ARM64 GSI substrate qualification
+  -> Sable-owned system.img build
+  -> E3 artifact preflight
+  -> review AVB/LP/userdata plan
+  -> first bounded deployment only after explicit gate approval
 
 SABLEOS_R9_PANTHER_REFERENCE=COMPLETE
 PUBLIC_BUILD_FOUNDATION=MERGED
@@ -40,18 +48,32 @@ TITAN2_N0_DEVICE_ADAPTER=NOT_STARTED
 TITAN2_N0_ARTIFACT=ABSENT
 FIRST_SABLE_BOOT=BLOCKED_ON_ARTIFACT
 TIER2_STOCK_BASELINE=COMPLETE
-
-DO NOT REOPEN BROAD TIER 1 REVERSE ENGINEERING
-
-Active path:
-  verify restore + stock runtime baseline
-  -> capture bootloader/fastbootd state
-  -> preflight exact Sable system artifact
-  -> review AVB/LP/userdata plan
-  -> first bounded Sable N0 flash
 ```
 
 No SableOS image has been flashed to the Titan 2 yet.
+
+## SableOS strategy summary
+
+Titan 2 enters SableOS through the Treble portability lane, not the Pixel
+reference lane.
+
+```text
+DEVICE=titan2
+SABLE_RELEASE=R10 planning line
+TITAN_RELEASE_ID=N0_A16
+ANDROID_RELEASE=16
+PLATFORM_SDK=36
+ARTIFACT_KIND=gsi-system-image
+FIRST_SUBSTRATE=AOSP16_CLEAN_GSI
+RESTLESSOS_ROLE=REFERENCE_AND_FUTURE_FORK
+FIRST_SABLE_ARTIFACT=ABSENT
+FIRST_SABLE_BOOT=NOT_RUN
+```
+
+RestlessOS is a MediaTek/Treble reference and possible future fork, but it is
+not the first Titan 2 boot dependency. The first Titan 2 build should isolate
+stock vendor/kernel/firmware compatibility before adding RestlessOS policy or
+hardening variables.
 
 ## Proven platform facts
 
@@ -114,7 +136,11 @@ See [Physical-keyboard app research plan](docs/KEYBOARD_APP_RESEARCH.md).
 - [Camera research and Sable Camera plan](docs/CAMERA_RESEARCH.md)
 - [Camera no-root / root / SableOS capability roadmap](docs/CAMERA_ROOT_VS_NO_ROOT.md)
 - [Physical-keyboard app research plan](docs/KEYBOARD_APP_RESEARCH.md)
+- [SableOS Treble portability handoff](docs/SABLEOS_TREBLE_PORTABILITY_HANDOFF.md)
 - [SableOS bring-up contract](docs/SABLEOS_BRINGUP_CONTRACT.md)
+- [Titan 2 Tier 2 / first Sable N0 runbook](docs/TITAN2_TIER2_RUNBOOK.md)
+- [Titan 2 N0 acceptance matrix](docs/TITAN2_N0_ACCEPTANCE_MATRIX.md)
+- [Titan 2 Tier 2 stock functional baseline worksheet](docs/TITAN2_TIER2_STOCK_BASELINE_WORKSHEET.md)
 - [References](docs/REFERENCES.md)
 
 ## Private evidence and firmware
@@ -146,6 +172,15 @@ Firmware/image corpora are maintained separately on `ai-g732` and are not commit
 Tier 1 and the bounded Tier 2 stock qualification are complete. The active OS track is now the Titan 2 Sable build target and first-N0 artifact. No non-stock image is written until the exact Sable artifact, AVB action, LP sizing and userdata policy have been reviewed.
 
 ```text
+SableOS:
+  settle keyboard-first / Treble portability architecture
+  -> qualify AOSP16 clean ARM64 GSI substrate
+  -> define Titan 2 device/product adapter + build target
+  -> build first Sable-owned system.img
+  -> run E3 artifact preflight
+  -> review recovery-safe AVB/LP/userdata plan
+  -> decide deployment only after restore, AVB, userdata and serial-bound gates
+
 camera:
   finish stock capability baseline
   -> build reusable Camera2 probe
@@ -156,16 +191,18 @@ keyboard:
   -> evaluate Pastiera on real hardware
   -> define cross-device keyboard profile schema
 
+RestlessOS:
+  create/track sableos-project/treble_restlessos
+  -> use as reference/future fork after AOSP16 baseline exists
+
 Q27:
   wait for newer/current OTA releases and preferably retail hardware
   -> do not generalize prototype firmware
 
-SableOS:
-  Panther R9 frozen reference
-  -> define Titan 2 device/product adapter + build target
-  -> build and preflight the first Titan 2 artifact
-  -> review recovery-safe AVB/LP/userdata plan
-  -> first bounded Titan 2 N0 flash
+Titan 2 Elite:
+  wait for hardware
+  -> run independent baseline
+  -> do not inherit Titan 2 PASS results
 ```
 
 The first alternate-system boot remains a **bring-up milestone**, not another research prerequisite.
