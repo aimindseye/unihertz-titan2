@@ -4,7 +4,7 @@ This is the handoff from bounded Titan 2 research into future SableOS work.
 
 **Research status:** complete  
 **Bring-up decision:** GO  
-**Execution status:** deferred until SableOS Release 9 validation on Pixel 7 is complete
+**Execution status:** ACTIVE — Panther R9 is the frozen touch-first reference; keyboard-first Titan 2 Tier 2/N0 work is active
 
 ```text
 DEVICE=titan2
@@ -42,11 +42,24 @@ ROOT_VBMETA_KEY_ROTATION_13_TO_14=YES
 US_NON_EEA_EQUIVALENCE=PROVEN_FOR_34_OTA_MANAGED_PARTITIONS
 GSI_BOOT=NOT_TESTED
 VENDOR_COMPATIBILITY=PLAUSIBLE_TREBLE_VNDK34
-KEYBOARD_BASELINE=DEFERRED_TO_BRINGUP
-SECONDARY_DISPLAY_BASELINE=DEFERRED_TO_BRINGUP
+KEYBOARD_BASELINE=COMPLETE_TIER1
+SECONDARY_DISPLAY_BASELINE=COMPLETE_TIER1
 
 SABLEOS_BRINGUP_AUTHORIZED=YES
-SABLEOS_BRINGUP_STATUS=DEFERRED_PENDING_SABLEOS_9_PIXEL7_VALIDATION
+SABLEOS_BRINGUP_STATUS=ACTIVE_TIER2_N0_PREFLIGHT
+TITAN2_BUILD_TARGET=REQUIRED
+TITAN2_SABLE_ARTIFACT=NOT_BUILT
+PIXEL7_ARTIFACT_REUSABLE_FOR_TITAN2=NO
+
+SABLEOS_R9_PANTHER_REFERENCE=COMPLETE
+PUBLIC_BUILD_FOUNDATION=MERGED
+PUBLIC_BUILD_SELF_TEST=MERGED
+TITAN2_N0_DEVICE_ADAPTER=NOT_STARTED
+TITAN2_N0_ARTIFACT=ABSENT
+FIRST_SABLE_BOOT=BLOCKED_ON_ARTIFACT
+TIER2_STOCK_BASELINE=ACTIVE
+STOCK_FACTORY_DIAGNOSTICS=VERIFIED
+SABLE_TITAN_DIAGNOSTICS=REQUIRED
 ```
 
 ## What "authorized" means
@@ -101,12 +114,13 @@ Before flashing SableOS or a generic system image:
 
 ## Resume point
 
-Do not reopen broad Titan 2 research after the Pixel 7 work.
+Do not reopen broad Titan 2 research. Panther R9 is already frozen as the
+touch-first reference; it is not a prerequisite still waiting to complete.
 
 Resume with:
 
 ```text
-SableOS Release 9 validated on Pixel 7
+Panther R9 frozen touch-first reference
     ↓
 define Titan 2 SableOS system/framework target
     ↓
@@ -120,3 +134,41 @@ fix Titan-specific hardware incrementally
 ```
 
 The repository documents the evidence needed to start from this point.
+
+
+## Active Tier 2 preflight
+
+Tier 1 input/display/ownership research is complete. The active execution
+sequence is documented in [TITAN2_TIER2_RUNBOOK.md](TITAN2_TIER2_RUNBOOK.md).
+
+Before the first write, require saved evidence for:
+
+```text
+stock runtime baseline
+stock restore verification
+bootloader-fastboot preflight
+fastbootd / LP preflight
+Titan 2-specific Sable build target
+exact Titan 2 Sable artifact SHA-256 + logical size
+reviewed AVB action
+reviewed userdata policy
+```
+
+The repository intentionally does not yet contain a write-capable N0 flash
+script. The exact flash sequence will be created only after the actual Sable
+artifact has been preflighted against the current Titan 2 LP/AVB state.
+
+After first boot, use the saved stock-vs-Sable runtime comparison and
+[TITAN2_N0_ACCEPTANCE_MATRIX.md](TITAN2_N0_ACCEPTANCE_MATRIX.md) to drive
+device-specific fixes.
+
+
+## Build-target boundary
+
+The existing Pixel 7 / Panther Release 9 artifact is a reference build only. It
+must not be flashed to Titan 2 or treated as the Titan 2 N0 candidate.
+
+The current next step is [TITAN2_SABLE_BUILD_TARGET_PLAN.md](TITAN2_SABLE_BUILD_TARGET_PLAN.md):
+create the Titan 2 Sable product/device target while preserving the stock MTK
+kernel/vendor stack for N0. E3 artifact preflight remains blocked until that
+build exists.
