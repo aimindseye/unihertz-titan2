@@ -79,18 +79,12 @@ odm_dlkm_a=/srv/data/sable-build/titan2/artifacts/stock-firmware/unihertz-device
 
 ```text
 ed9edad3c65e4908028bb6087bbb712efff81bd4fe6601cc6cc6f0273b545c5d  system_a
-_de1fdecab38b3c5ad7f30beea13f1afb46fa02d98b6cc78d57749b34513aad37  product_a
+de1fdecab38b3c5ad7f30beea13f1afb46fa02d98b6cc78d57749b34513aad37  product_a
 1d9d25921def9b7e4e767c00a1f34d19ef5e7320138e3522545f2a2f2047d170  system_ext_a
 cfeacc74b4289e56921016fedf35a45a995121b874be3cd2f1561b8ed2d61ada  vendor_a
 2752d357dc698db0967a3bbc9de2204127eab69fa28f7d3471d3e039e4a2946f  system_dlkm_a
 1fc51fb7a2f089b3d9255d00944bda711e64b297daf2ecf687abeae17e0a4936  vendor_dlkm_a
 ebe714d1ed41742eeb87fa06674900703af97f90f729420fe37555bd02338723  odm_dlkm_a
-```
-
-Note: the leading underscore on the `product_a` hash line is not part of the hash. It is used only to prevent some renderers from treating the line as a link-like token. The actual hash is:
-
-```text
-de1fdecab38b3c5ad7f30beea13f1afb46fa02d98b6cc78d57749b34513aad37
 ```
 
 ## Known caveat
