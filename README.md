@@ -1,3 +1,5 @@
+> **Current status — 2026-10-13:** Titan 2 M4 system_a write succeeded but Android boot failed; hybrid-derived integration is now strictly host-evidence gated. **No new build or flash authority.** [Engineering status](docs/ENGINEERING_STATUS_2026-10-13.md). Older dated milestones below remain historical; other devices are unchanged.
+
 # Unihertz Titan 2
 
 ## SableOS keyboard-first research handoff
