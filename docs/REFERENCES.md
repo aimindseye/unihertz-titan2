@@ -141,6 +141,26 @@ The project owner also identified the `kernel-studies` and `rooting-and-custom-s
 
 Discord is used as a discovery/community reference. Claims taken from chat should be reproduced independently or clearly attributed before being promoted to repository findings.
 
+## Titan 2 mainline Linux and recovery references (2026-11-15)
+
+**Status: source-only research reference, not a deployment or build authorization.** These links were inspected on 2026-11-15 for the potential SableOS Native / Marathon compatibility study. Source revisions are fixed below for reproducible review; branch heads may move. The [2026-11-03 SableOS device portfolio stop](https://github.com/sableos-project/platform_sable/blob/main/docs/DEVICE_PORTFOLIO_STATUS_2026-11-03.md) remains in force for Titan 2/Elite ROM and device work. The [2026-11-15 editions decision](https://github.com/sableos-project/platform_sable/blob/main/docs/SABLEOS_EDITIONS_2026-11-15.md) permits **source-only** Titan 2 Native comparison, not a build, flash, runtime campaign, or release.
+
+| Source (immutable snapshot) | Verified scope | Reuse boundary |
+| --- | --- | --- |
+| [aimindseye/unihertz-titan2](https://github.com/aimindseye/unihertz-titan2/tree/966c04585fb34f916c0d72d4d4aa425b26c6504c) | SableOS historical Titan 2 firmware, input, camera, recovery and acceptance research; this repository is the local reference index. | Historical findings, not evidence of a present working SableOS ROM or authorization to resume its old roadmap. |
+| [Serlk/titan2-twrp](https://github.com/Serlk/titan2-twrp/tree/1d1c3ce6958ea9f4eef8194d3aada88a6ae28313) | TWRP 3.7.1 Android-14-based recovery for stock V01.00.14: recovery-ramdisk replacement in device-matched `vendor_boot`, FBE metadata decryption, adb and fastbootd. | Recovery/TEE/boot-layout **reference only**. PIN verification accesses protected TEE storage; wrong labels may break Android unlock. Slot switching is unsupported; installation is invasive. |
+| [Serlk/titan2-tools](https://github.com/Serlk/titan2-tools/tree/c60ce4f33a7def74e16cdc2424f82438d3cda6ce) | Linux build tools, Alpine initramfs, GPT/boot-menu tests, modem CCCI userspace, `mtk-ccci` ModemManager plugin, IMS/APN control, `t2-speechd` call audio and host tests. | **Highest-value telephony source.** Its plugin is tied to a specific ModemManager build, needs single-owner AT/MIPC access and is **not** an Android `ImsService` drop-in. Do not run its scripts against a phone as part of a read-only review. |
+| [Serlk/titan2-boot](https://github.com/Serlk/titan2-boot/tree/a638b5b545aaf9d2e7673a152bf3394748ca741d) | Second-stage dual-boot menu placed in `boot_a`, after unchanged factory LK; Android/Linux entries, read-only UFS/GPT/ext4 loader, bootloader memory/FDT contracts and QEMU/host tests. | Boot-architecture reference only; modifying `boot_a` and integrating a Linux partition introduce boot/recovery risk. Never infer compatibility with Titan 2 Elite or other firmware. |
+| [Serlk/titan2-docs](https://github.com/Serlk/titan2-docs/tree/73b6c0ec7e8858fd6e4f2cab9039d46e24650c95) | [Status](https://github.com/Serlk/titan2-docs/blob/73b6c0ec7e8858fd6e4f2cab9039d46e24650c95/docs/STATUS.md), build, install, dual-boot rollback, LK and hardware reference documents. | Reports developer-tested Linux VoLTE calls in both directions, SMS and LTE data on **one** Titan 2. Not a SableOS acceptance result or an independent US-carrier qualification. |
+
+Related upstream projects discovered through these references, **not additional user-supplied reference targets**: [Serlk/titan2-linux](https://github.com/Serlk/titan2-linux/tree/50a22e5003dd4a71f27f241069064799bf2a6a3c) (Linux 7.2 kernel/device tree, branch `titan2`) and [Serlk/titan2-android](https://github.com/Serlk/titan2-android/tree/dcfc7cf0996b22ef96334eaa6108b2845ce704ae) (crDroid 16 GSI; **its README says VoLTE is not working on Android**). Do not conflate the Linux VoLTE result with Android GSI IMS functionality.
+
+**Source-only SableOS Native relevance:** Marathon already consumes ModemManager voice and SMS APIs. A future comparison may assess its Qt/QML shell and Rust services against Serlk's Titan 2 plugin, while preserving the vendor-specific ModemManager package/version, OpenRC startup ordering, `t2-speechd` audio ownership and Titan 2 keyboard/display device profile. Source compatibility is **not** qualified image compatibility.
+
+**Release and security gaps:** Serlk documents approximately 80 mA suspend current, unverified end-to-end incoming-call wake, untested emergency calls and SIM2 incoming calls, incomplete SIM2 SMS, missing MMS/fingerprint/rear display and unproven stock-Android dual boot. Dual boot involves disabling AVB verification, changing `boot_a`, repartitioning/wiping userdata and protecting sensitive per-device modem calibration/NVRAM copies. Never publish raw IMEI, SIM IDs, calibration partitions or device keys. Respect each project's per-file licence and retain attribution before reusing code.
+
+Reviewed: 2026-11-15. **No build, signing, flash, device operation, or active Titan 2 project status change is implied.**
+
 ## Android platform references
 
 These were used to interpret observed platform behavior:
